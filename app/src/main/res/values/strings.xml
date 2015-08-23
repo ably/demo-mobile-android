@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">AblyDemo</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="unabletoconnet">Unable to connect. Try later</string>
+    <string name="unabletosendmessage">Unable to send message. Try again</string>
+</resources>
