@@ -1,6 +1,5 @@
 package io.ably.demo.fragments;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -12,7 +11,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.net.ConnectException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,11 +19,12 @@ import io.ably.demo.R;
 import io.ably.demo.connection.Connection;
 import io.ably.types.AblyException;
 import io.ably.types.Message;
+import io.ably.types.PresenceMessage;
 
 public class ChatFragment extends Fragment implements View.OnClickListener {
 
-    private View mainViewRef;
     public ChatScreenAdapter adapter;
+    private View mainViewRef;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -33,42 +32,14 @@ public class ChatFragment extends Fragment implements View.OnClickListener {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        mainViewRef = inflater.inflate(R.layout.chatscreen,container,false);
-        mainViewRef.findViewById(R.id.sendBtn).setOnClickListener(this);
-        adapter = new ChatScreenAdapter();
-        Connection.getInstance().adapterReference = adapter;
-
-        return mainViewRef;
-    }
-
-
-    @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        final ListView listView = ((ListView) mainViewRef.findViewById(R.id.chatList));
-
-        AsyncTask fetchHistory = new AsyncTask() {
-            @Override
-            protected Object doInBackground(Object[] params) {
-                try {
-                    Connection.getInstance().getHistory("backwards",50);
-                } catch (AblyException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Object o) {
-                super.onPostExecute(o);
-                listView.setAdapter(adapter);
-                adapter.notifyDataSetChanged();
-                view.findViewById(R.id.progressBar).setVisibility(View.GONE);
-            }
-        };
+        mainViewRef = view;
+        view.findViewById(R.id.sendBtn).setOnClickListener(this);
+        adapter = new ChatScreenAdapter();
+        Connection.getInstance().adapterReference = adapter;
         view.findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-        fetchHistory.execute();
+        ((ListView) view.findViewById(R.id.chatList)).setAdapter(adapter);
     }
 
     @Override
@@ -91,15 +62,35 @@ public class ChatFragment extends Fragment implements View.OnClickListener {
     public class ChatScreenAdapter extends BaseAdapter
     {
         LayoutInflater layoutInflater = getActivity().getLayoutInflater();
-        ArrayList<Message> items = new ArrayList<>();
+        ArrayList<Object> items = new ArrayList<>();
 
-        public void addItems(Message[] newItems)
+        public void addMessages(Message[] newItems)
         {
             for (Message item:newItems)
             {
                 items.add(item);
             }
 
+            notifyChanges();
+        }
+
+        public void addUsers(PresenceMessage[] newUsers)
+        {
+            for (PresenceMessage item:newUsers)
+            {
+                items.add(item);
+            }
+
+            notifyChanges();
+        }
+
+        private void sortArrayList()
+        {
+            //here we will be sorting the adapter by timestamp
+        }
+
+        private void notifyChanges()
+        {
             ChatFragment.this.getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -126,25 +117,39 @@ public class ChatFragment extends Fragment implements View.OnClickListener {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             View view = convertView;
-            if (view == null)
-            {
-                view = layoutInflater.inflate(R.layout.chatitem, parent,false);
-            }
 
-            String userName = items.get(position).name;
-            ((TextView) view.findViewById(R.id.username)).setText(userName);
-            if (userName.equals(Connection.getInstance().userName))
-            {
-                view.setBackgroundResource(R.drawable.outgoingmessage);
+            if (items.get(position) instanceof Message) {
+                //case for a message
+                if (view == null) {
+                    view = layoutInflater.inflate(R.layout.chatitem, parent, false);
+                }
+                Message message = ((Message) items.get(position));
+                String userName = message.name;
+                ((TextView) view.findViewById(R.id.username)).setText(userName);
+                if (userName.equals(Connection.getInstance().userName)) {
+                    view.setBackgroundResource(R.drawable.outgoingmessage);
+                } else {
+                    view.setBackgroundResource(R.drawable.incommingmessage);
+                }
+                SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
+                String dateString = formatter.format(new Date(message.timestamp));
+                ((TextView) view.findViewById(R.id.timestamp)).setText(dateString);
+                ((TextView) view.findViewById(R.id.message)).setText(message.data.toString());
             }
             else
             {
-                view.setBackgroundResource(R.drawable.incommingmessage);
+                //case of a presence element
+                if (view == null) {
+                    view = layoutInflater.inflate(R.layout.presenceitem, parent, false);
+                }
+                PresenceMessage message = ((PresenceMessage) items.get(position));
+                String userName = message.clientId;
+                ((TextView) view.findViewById(R.id.action)).setText(userName + " has entered the channel");
+                SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
+                String dateString = formatter.format(new Date(message.timestamp));
+                ((TextView) view.findViewById(R.id.presenceTimeStamp)).setText(dateString);
             }
-            SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
-            String dateString = formatter.format(new Date(items.get(position).timestamp));
-            ((TextView) view.findViewById(R.id.timestamp)).setText(dateString);
-            ((TextView) view.findViewById(R.id.message)).setText(items.get(position).data.toString());
+
             return view;
         }
     }
