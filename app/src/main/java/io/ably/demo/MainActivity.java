@@ -29,7 +29,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //establishing connection with ably service
         try {
-            Connection.getInstance().establishConnectionForID(((TextView) findViewById(R.id.usernameET)).getText().toString());
+            String clientId = ((TextView) findViewById(R.id.usernameET)).getText().toString();
+            Connection.getInstance().establishConnectionForID(clientId);
         } catch (AblyException e) {
             Toast.makeText(this,R.string.unabletoconnet,Toast.LENGTH_LONG).show();
             Log.e("AblyConnection", e.getMessage());

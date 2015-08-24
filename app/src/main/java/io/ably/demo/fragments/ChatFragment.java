@@ -100,7 +100,12 @@ public class ChatFragment extends Fragment implements View.OnClickListener {
                 items.add(item);
             }
 
-            notifyDataSetChanged();
+            ChatFragment.this.getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    notifyDataSetChanged();
+                }
+            });
         }
 
         @Override
