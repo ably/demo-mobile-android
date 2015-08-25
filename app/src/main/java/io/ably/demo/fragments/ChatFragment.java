@@ -17,25 +17,97 @@ import java.util.Date;
 
 import io.ably.demo.R;
 import io.ably.demo.connection.Connection;
+import io.ably.demo.connection.ConnectionCallback;
+import io.ably.realtime.Channel;
+import io.ably.realtime.Presence;
 import io.ably.types.AblyException;
+import io.ably.types.BaseMessage;
 import io.ably.types.Message;
 import io.ably.types.PresenceMessage;
 
 public class ChatFragment extends Fragment implements View.OnClickListener {
 
-    public ChatScreenAdapter adapter;
     private View mainViewRef;
+    public ChatScreenAdapter adapter;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        mainViewRef = inflater.inflate(R.layout.chatscreen,container,false);
+
+        return mainViewRef;
+    }
+
 
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mainViewRef = view;
-        view.findViewById(R.id.sendBtn).setOnClickListener(this);
+        mainViewRef.findViewById(R.id.sendBtn).setOnClickListener(this);
         adapter = new ChatScreenAdapter();
-        Connection.getInstance().adapterReference = adapter;
+        ListView listView = ((ListView) mainViewRef.findViewById(R.id.chatList));
+        listView.setAdapter(adapter);
         view.findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-        ((ListView) view.findViewById(R.id.chatList)).setAdapter(adapter);
+
+        try {
+            Connection.getInstance().init(messageListener, presenceListener, new ConnectionCallback() {
+                @Override
+                public void onConnectionCallback() throws AblyException {
+                    Connection.getInstance().getMessagesHistory(new ConnectionCallback() {
+
+                        @Override
+                        public void onConnectionCallback() {
+
+                        }
+
+                        @Override
+                        public void onConnectionCallbackWithResult(BaseMessage[] result) throws AblyException {
+                            adapter.addItems(result);
+                            Connection.getInstance().getPresenceHistory(new ConnectionCallback() {
+                                @Override
+                                public void onConnectionCallback() {
+
+                                }
+
+                                @Override
+                                public void onConnectionCallbackWithResult(BaseMessage[] result) throws AblyException {
+                                    adapter.addItems(result);
+
+                                    mainViewRef.findViewById(R.id.progressBar).setVisibility(View.GONE);
+                                }
+                            });
+                        }
+                    });
+                }
+
+                @Override
+                public void onConnectionCallbackWithResult(BaseMessage[] result) throws AblyException {
+
+                }
+            });
+        } catch (AblyException e) {
+            e.printStackTrace();
+        }
     }
+
+    private Channel.MessageListener messageListener = new Channel.MessageListener() {
+        @Override
+        public void onMessage(Message[] messages) {
+            adapter.addItems(messages);
+        }
+    };
+
+    private Presence.PresenceListener presenceListener = new Presence.PresenceListener() {
+        @Override
+        public void onPresenceMessage(PresenceMessage[] presenceMessages) {
+            //handling different cases - joined and left
+
+            adapter.notify();
+        }
+    };
 
     @Override
     public void onClick(View v) {
@@ -57,34 +129,19 @@ public class ChatFragment extends Fragment implements View.OnClickListener {
     public class ChatScreenAdapter extends BaseAdapter
     {
         LayoutInflater layoutInflater = getActivity().getLayoutInflater();
-        ArrayList<Object> items = new ArrayList<>();
+        ArrayList<BaseMessage> items = new ArrayList<>();
 
-        public void addMessages(Message[] newItems)
+        public void addItems(BaseMessage[] newItems)
         {
-            for (Message item:newItems)
+            for (BaseMessage item:newItems)
             {
                 items.add(item);
             }
 
-            notifyChanges();
+            notifyChange();
         }
 
-        public void addUsers(PresenceMessage[] newUsers)
-        {
-            for (PresenceMessage item:newUsers)
-            {
-                items.add(item);
-            }
-
-            notifyChanges();
-        }
-
-        private void sortArrayList()
-        {
-            //here we will be sorting the adapter by timestamp
-        }
-
-        private void notifyChanges()
+        private void notifyChange()
         {
             ChatFragment.this.getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -113,36 +170,38 @@ public class ChatFragment extends Fragment implements View.OnClickListener {
         public View getView(int position, View convertView, ViewGroup parent) {
             View view = convertView;
 
+            SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
+
             if (items.get(position) instanceof Message) {
-                //case for a message
-                if (view == null) {
-                    view = layoutInflater.inflate(R.layout.chatitem, parent, false);
+                //case for messages
+                if (view == null)
+                {
+                    view = layoutInflater.inflate(R.layout.chatitem, parent,false);
                 }
                 Message message = ((Message) items.get(position));
                 String userName = message.name;
                 ((TextView) view.findViewById(R.id.username)).setText(userName);
-                if (userName.equals(Connection.getInstance().userName)) {
+                if (userName.equals(Connection.getInstance().userName))
+                {
                     view.setBackgroundResource(R.drawable.outgoingmessage);
-                } else {
+                }
+                else
+                {
                     view.setBackgroundResource(R.drawable.incommingmessage);
                 }
-                SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
                 String dateString = formatter.format(new Date(message.timestamp));
                 ((TextView) view.findViewById(R.id.timestamp)).setText(dateString);
                 ((TextView) view.findViewById(R.id.message)).setText(message.data.toString());
-            }
-            else
-            {
-                //case of a presence element
-                if (view == null) {
-                    view = layoutInflater.inflate(R.layout.presenceitem, parent, false);
+            } else {
+                //case for presence item
+                if (view == null)
+                {
+                    view = layoutInflater.inflate(R.layout.presenceitem, parent,false);
                 }
-                PresenceMessage message = ((PresenceMessage) items.get(position));
-                String userName = message.clientId;
-                ((TextView) view.findViewById(R.id.action)).setText(userName + " has entered the channel");
-                SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
-                String dateString = formatter.format(new Date(message.timestamp));
-                ((TextView) view.findViewById(R.id.presenceTimeStamp)).setText(dateString);
+                PresenceMessage presenceMessage = ((PresenceMessage) items.get(position));
+                ((TextView) view.findViewById(R.id.action)).setText(presenceMessage.clientId + " has entered the channel");
+                String dateString = formatter.format(new Date(presenceMessage.timestamp));
+                ((TextView) view.findViewById(R.id.timestamp)).setText(dateString);
             }
 
             return view;

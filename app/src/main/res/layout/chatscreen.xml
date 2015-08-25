@@ -7,7 +7,8 @@
         android:id="@+id/progressBar"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:visibility="gone"/>
+        android:visibility="gone"
+        android:indeterminateOnly="false"/>
 
     <ListView android:layout_weight="1"
         android:layout_width="wrap_content"
