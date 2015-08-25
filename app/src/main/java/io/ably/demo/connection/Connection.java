@@ -51,6 +51,8 @@ public class Connection {
         clientOptions.logLevel = io.ably.util.Log.VERBOSE;
         ablyRealtime = new AblyRealtime(clientOptions);
         ablyRealtime.connection.on(stateListener);
+        joinChannel(ablyRealtime);
+        getHistory("backwards", 50);
     }
 
     private void joinChannel(AblyRealtime ablyInstance) throws AblyException {
@@ -59,9 +61,9 @@ public class Connection {
         sessionChannel.attach();
         sessionChannel.subscribe(messageListener);
 
-        Presence presence = sessionChannel.presence;
-        presence.subscribe(presenceListener);
-        presence.enter(null, new CompletionListener() {
+        //Presence presence = sessionChannel.presence;
+        //presence.subscribe(presenceListener);
+        /*presence.enterClient(userName, null, new CompletionListener() {
             @Override
             public void onSuccess() {
                 Log.d("PresenceSetting", "User successfully entered!!!");
@@ -71,7 +73,7 @@ public class Connection {
             public void onError(ErrorInfo errorInfo) {
                 Log.d("PresenceSetting", "Error on presence entering!!!");
             }
-        });
+        });*/
     }
 
     private Presence.PresenceListener presenceListener = new Presence.PresenceListener() {
@@ -83,7 +85,7 @@ public class Connection {
     };
 
     public void getHistory(String direction, int limit) throws AblyException {
-        getPresenceHistory(direction, limit);
+        //getPresenceHistory(direction, limit);
         getMessagesHistory(direction, limit);
     }
 
@@ -136,12 +138,6 @@ public class Connection {
                 case connecting:
                     break;
                 case connected:
-                    try {
-                        joinChannel(ablyRealtime);
-                        getHistory("backwards", 50);
-                    } catch (AblyException e) {
-                        e.printStackTrace();
-                    }
                     break;
                 case disconnected:
                     break;

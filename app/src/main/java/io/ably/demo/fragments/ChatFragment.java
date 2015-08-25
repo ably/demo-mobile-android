@@ -27,11 +27,6 @@ public class ChatFragment extends Fragment implements View.OnClickListener {
     private View mainViewRef;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mainViewRef = view;
