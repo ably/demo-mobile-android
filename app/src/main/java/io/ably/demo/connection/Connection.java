@@ -18,9 +18,7 @@ import io.ably.types.PaginatedResult;
 import io.ably.types.Param;
 import io.ably.types.PresenceMessage;
 
-
 public class Connection {
-
     //no message system needed for a simple reference between the files
     public ChatFragment.ChatScreenAdapter adapterReference;
 
@@ -31,11 +29,14 @@ public class Connection {
     public String userName;
     private AblyRealtime ablyRealtime;
 
-    private Connection() {}
+    private Connection() {
+    }
 
     private static Connection instance = new Connection();
 
-    public static Connection getInstance() {return instance;}
+    public static Connection getInstance() {
+        return instance;
+    }
 
     public void establishConnectionForID(String userName) throws AblyException {
         this.userName = userName;
@@ -71,7 +72,6 @@ public class Connection {
                 Log.d("PresenceSetting", "Error on presence entering!!!");
             }
         });
-
     }
 
     private Presence.PresenceListener presenceListener = new Presence.PresenceListener() {
@@ -83,36 +83,36 @@ public class Connection {
     };
 
     public void getHistory(String direction, int limit) throws AblyException {
-        getPresenceHistory(direction,limit);
+        getPresenceHistory(direction, limit);
         getMessagesHistory(direction, limit);
     }
 
     public void getPresenceHistory(String direction, int limit) throws AblyException {
-        Param param1 = new Param("limit",String.valueOf(limit));
-        Param param2 = new Param("direction",direction);
-        Param[] params = {param1,param2};
+        Param param1 = new Param("limit", String.valueOf(limit));
+        Param param2 = new Param("direction", direction);
+        Param[] params = {param1, param2};
         PaginatedResult<PresenceMessage> messages = sessionChannel.presence.history(params);
         adapterReference.addUsers(messages.items());
     }
 
     public void getMessagesHistory(String direction, int limit) throws AblyException {
-        Param param1 = new Param("limit",String.valueOf(limit));
-        Param param2 = new Param("direction",direction);
-        Param[] params = {param1,param2};
+        Param param1 = new Param("limit", String.valueOf(limit));
+        Param param2 = new Param("direction", direction);
+        Param[] params = {param1, param2};
         PaginatedResult<Message> messages = sessionChannel.history(params);
         adapterReference.addMessages(messages.items());
     }
 
     public void sendMessage(String message) throws AblyException {
-        sessionChannel.publish(userName,message, new CompletionListener() {
+        sessionChannel.publish(userName, message, new CompletionListener() {
             @Override
             public void onSuccess() {
-                Log.d("MessageSending","Message sent!!!");
+                Log.d("MessageSending", "Message sent!!!");
             }
 
             @Override
             public void onError(ErrorInfo errorInfo) {
-                Log.e("MessageSending",errorInfo.message);
+                Log.e("MessageSending", errorInfo.message);
             }
         });
     }
@@ -128,8 +128,7 @@ public class Connection {
         @Override
         public void onConnectionStateChanged(ConnectionStateChange connectionStateChange) {
             //code for handling connection state changes
-            switch (connectionStateChange.current)
-            {
+            switch (connectionStateChange.current) {
                 case closed:
                     break;
                 case initialized:
@@ -139,7 +138,7 @@ public class Connection {
                 case connected:
                     try {
                         joinChannel(ablyRealtime);
-                        getHistory("backwards",50);
+                        getHistory("backwards", 50);
                     } catch (AblyException e) {
                         e.printStackTrace();
                     }
