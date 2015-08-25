@@ -42,7 +42,7 @@ public class Connection {
         this.userName = userName;
         //connecting with proper thingies
         ClientOptions clientOptions = new ClientOptions();
-        //clientOptions.clientId = userID;
+        clientOptions.clientId = userName;
         //clientOptions.key = "xVLyHw.thZlGw:YMexFEbld2BPP_hK";
         //channel with persistance and history
         clientOptions.key = "UtITiw.ji1DsQ:sdl6lgqkJ7AQu0ow";
@@ -61,7 +61,7 @@ public class Connection {
 
         Presence presence = sessionChannel.presence;
         presence.subscribe(presenceListener);
-        presence.enter(userName, new CompletionListener() {
+        presence.enter(null, new CompletionListener() {
             @Override
             public void onSuccess() {
                 Log.d("PresenceSetting", "User successfully entered!!!");
