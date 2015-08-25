@@ -47,7 +47,7 @@ public class Connection {
         clientOptions.key = "UtITiw.ji1DsQ:sdl6lgqkJ7AQu0ow";
         //clientOptions.key = "I2E_JQ.1QRmxw:ftN1OHLeV4k9EEtQ";
         //clientOptions.authUrl = authURL;
-        clientOptions.logLevel = 10;
+        clientOptions.logLevel = io.ably.util.Log.VERBOSE;
         ablyRealtime = new AblyRealtime(clientOptions);
         ablyRealtime.connection.on(stateListener);
     }
