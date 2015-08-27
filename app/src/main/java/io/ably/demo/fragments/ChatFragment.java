@@ -47,28 +47,7 @@ public class ChatFragment extends Fragment implements View.OnClickListener {
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         final ListView listView = ((ListView) mainViewRef.findViewById(R.id.chatList));
-
-        AsyncTask fetchHistory = new AsyncTask() {
-            @Override
-            protected Object doInBackground(Object[] params) {
-                try {
-                    Connection.getInstance().getHistory("backwards",50);
-                } catch (AblyException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Object o) {
-                super.onPostExecute(o);
-                listView.setAdapter(adapter);
-                adapter.notifyDataSetChanged();
-                view.findViewById(R.id.progressBar).setVisibility(View.GONE);
-            }
-        };
-        view.findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-        fetchHistory.execute();
+        listView.setAdapter(adapter);
     }
 
     @Override

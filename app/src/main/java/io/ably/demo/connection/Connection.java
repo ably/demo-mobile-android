@@ -28,20 +28,21 @@ public class Connection {
     private Channel sessionChannel;
     public String userName;
 
-    private Connection() {}
+    private Connection() {
+    }
 
     private static Connection instance = new Connection();
 
-    public static Connection getInstance() {return instance;}
+    public static Connection getInstance() {
+        return instance;
+    }
 
     public void establishConnectionForID(String userName) throws AblyException {
         this.userName = userName;
         //connecting with proper thingies
         ClientOptions clientOptions = new ClientOptions();
-        //clientOptions.clientId = userID;
-        clientOptions.key = "xVLyHw.thZlGw:YMexFEbld2BPP_hK";
-        //clientOptions.key = "I2E_JQ.1QRmxw:ftN1OHLeV4k9EEtQ";
-        //clientOptions.authUrl = authURL;
+        clientOptions.clientId = userName;
+        clientOptions.key = "xVLyHw.qJrb6Q:8GpMViic3JgoqBKG";
         clientOptions.logLevel = 10;
         AblyRealtime ablyRealtime = new AblyRealtime(clientOptions);
         ablyRealtime.connection.on(stateListener);
@@ -53,23 +54,23 @@ public class Connection {
     }
 
     public void getHistory(String direction, int limit) throws AblyException {
-        Param param1 = new Param("limit",String.valueOf(limit));
-        Param param2 = new Param("direction",direction);
-        Param[] params = {param1,param2};
+        Param param1 = new Param("limit", String.valueOf(limit));
+        Param param2 = new Param("direction", direction);
+        Param[] params = {param1, param2};
         PaginatedResult<Message> messages = sessionChannel.history(params);
         adapterReference.addItems(messages.items());
     }
 
     public void sendMessage(String message) throws AblyException {
-        sessionChannel.publish(userName,message, new CompletionListener() {
+        sessionChannel.publish(userName, message, new CompletionListener() {
             @Override
             public void onSuccess() {
-                Log.d("MessageSending","Message sent!!!");
+                Log.d("MessageSending", "Message sent!!!");
             }
 
             @Override
             public void onError(ErrorInfo errorInfo) {
-                Log.e("MessageSending",errorInfo.message);
+                Log.e("MessageSending", errorInfo.message);
             }
         });
     }
@@ -85,8 +86,7 @@ public class Connection {
         @Override
         public void onConnectionStateChanged(ConnectionStateChange connectionStateChange) {
             //code for handling connection state changes
-            switch (connectionStateChange.current)
-            {
+            switch (connectionStateChange.current) {
                 case closed:
                     break;
                 case initialized:
