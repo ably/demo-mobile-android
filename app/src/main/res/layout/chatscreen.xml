@@ -26,7 +26,7 @@
             android:layout_width="80dp"
             android:layout_height="wrap_content"
             android:text="Mntn"
-            android:id="@+id/mentionBtn" />
+            android:id="@+id/mentionBtn" android:visibility="gone"/>
 
         <EditText
             android:layout_weight="1"
