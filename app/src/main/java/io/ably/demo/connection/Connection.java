@@ -47,7 +47,7 @@ public class Connection {
         //clientOptions.key = "I2E_JQ.1QRmxw:ftN1OHLeV4k9EEtQ";
 
         //channel with history and presence
-        clientOptions.key = "UtITiw.ji1DsQ:sdl6lgqkJ7AQu0ow";
+        clientOptions.authUrl = "https://www.ably.io/ably-auth/token-request/demos";
         clientOptions.logLevel = io.ably.util.Log.VERBOSE;
         clientOptions.clientId = userName;
         //endregion
@@ -170,23 +170,63 @@ public class Connection {
 
             @Override
             public void onError(ErrorInfo errorInfo) {
-                Log.e("PresenceRegistration","Something Went Wrong!");
+                Log.e("PresenceRegistration", "Something Went Wrong!");
             }
         });
     }
 
     public void sendMessage(String message) throws AblyException {
-        sessionChannel.publish(userName,message, new CompletionListener() {
+        sessionChannel.publish(userName, message, new CompletionListener() {
             @Override
             public void onSuccess() {
-                Log.d("MessageSending","Message sent!!!");
+                Log.d("MessageSending", "Message sent!!!");
             }
 
             @Override
             public void onError(ErrorInfo errorInfo) {
-                Log.e("MessageSending",errorInfo.message);
+                Log.e("MessageSending", errorInfo.message);
             }
         });
+    }
+
+    public void reconnectAbly() {
+        if (ablyRealtime !=null) {
+            ablyRealtime.connection.connect();
+        }
+    }
+
+    public void disconnectAbly() {
+        if (ablyRealtime != null) {
+            ablyRealtime.close();
+        }
+    }
+
+    public void userHasStartedTyping()
+    {
+        try {
+            sessionChannel.presence.update("{isTyping:true}", new CompletionListener() {
+                @Override
+                public void onSuccess() {
+                    Log.d("","");
+                }
+
+                @Override
+                public void onError(ErrorInfo errorInfo) {
+                    Log.d("","");
+                }
+            });
+        } catch (AblyException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void userHasEndedTyping()
+    {
+        try {
+            sessionChannel.presence.update("{isTyping:false}",null);
+        } catch (AblyException e) {
+            e.printStackTrace();
+        }
     }
 
 }
