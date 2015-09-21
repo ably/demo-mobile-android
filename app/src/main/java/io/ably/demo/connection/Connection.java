@@ -3,6 +3,11 @@ package io.ably.demo.connection;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Map;
+
+import io.ably.demo.MainActivity;
 import io.ably.realtime.AblyRealtime;
 import io.ably.realtime.Channel;
 import io.ably.realtime.CompletionListener;
@@ -24,14 +29,17 @@ public class Connection {
     private final String HISTORY_DIRECTION = "backwards";
     private final String HISTORY_LIMIT = "50";
     private Channel sessionChannel;
-    public String userName;
     private AblyRealtime ablyRealtime;
-
     private Connection() {}
+
+    private Channel.MessageListener messageListener;
+    private Presence.PresenceListener presenceListener;
 
     private static Connection instance = new Connection();
 
     public static Connection getInstance() {return instance;}
+
+    public String userName;
 
     public void establishConnectionForID(String userName,final ConnectionCallback callback) throws AblyException {
         //setting userName for future channels calls
@@ -79,10 +87,13 @@ public class Connection {
                         }
                         break;
                     case disconnected:
+
                         break;
                     case suspended:
                         break;
                     case closing:
+                        sessionChannel.unsubscribe(messageListener);
+                        sessionChannel.presence.unsubscribe(presenceListener);
                         break;
                     case failed:
                         break;
@@ -157,7 +168,9 @@ public class Connection {
     //this registers for presence and sets presence and messages listeners
     public void init(Channel.MessageListener listener, Presence.PresenceListener presenceListener, final ConnectionCallback callback) throws AblyException {
         sessionChannel.subscribe(listener);
+        messageListener = listener;
         sessionChannel.presence.subscribe(presenceListener);
+        this.presenceListener = presenceListener;
         sessionChannel.presence.enter(null, new CompletionListener() {
             @Override
             public void onSuccess() {
@@ -197,6 +210,7 @@ public class Connection {
 
     public void disconnectAbly() {
         if (ablyRealtime != null) {
+
             ablyRealtime.close();
         }
     }
@@ -204,7 +218,9 @@ public class Connection {
     public void userHasStartedTyping()
     {
         try {
-            sessionChannel.presence.update("{isTyping:true}", new CompletionListener() {
+            Map<String,Boolean> payload = new HashMap<>();
+            payload.put("isTyping",true);
+            sessionChannel.presence.update(payload, new CompletionListener() {
                 @Override
                 public void onSuccess() {
                     Log.d("","");
@@ -222,8 +238,10 @@ public class Connection {
 
     public void userHasEndedTyping()
     {
+        Map<String,Boolean> payload = new HashMap<>();
+        payload.put("isTyping",false);
         try {
-            sessionChannel.presence.update("{isTyping:false}",null);
+            sessionChannel.presence.update(payload,null);
         } catch (AblyException e) {
             e.printStackTrace();
         }

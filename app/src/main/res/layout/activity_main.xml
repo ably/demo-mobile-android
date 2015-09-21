@@ -41,7 +41,7 @@
         <ListView android:layout_weight="1"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
-            android:id="@+id/chatList"/>
+            android:id="@+id/chatList" android:transcriptMode="alwaysScroll" android:stackFromBottom="true"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -57,14 +57,27 @@
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/controllsLL">
+            android:id="@+id/controllsLL"
+            android:visibility="visible">
 
-            <Button
-                android:layout_width="80dp"
-                android:layout_height="wrap_content"
-                android:text="Mntn"
-                android:id="@+id/mentionBtn" android:visibility="gone"/>
-
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <ImageButton
+                    android:layout_width="80dp"
+                    android:layout_height="50dp"
+                    android:text="Mntn" android:src="@drawable/people" android:paddingRight="30dp"
+                    android:id="@+id/mentionBtn" android:visibility="visible" android:scaleType="fitCenter" />
+                <TextView
+                    android:text="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="false"
+                    android:layout_toRightOf="@+id/mentionBtn"
+                    android:layout_marginLeft="-20dp"
+                    android:layout_centerVertical="true"
+                    android:id="@+id/presenceBadge" />
+            </RelativeLayout>
             <EditText
                 android:layout_weight="1"
                 android:layout_width="fill_parent"
