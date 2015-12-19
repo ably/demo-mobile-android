@@ -1,7 +1,7 @@
 package io.ably.demo.connection;
 
-import io.ably.types.AblyException;
-import io.ably.types.BaseMessage;
+import io.ably.lib.types.AblyException;
+import io.ably.lib.types.BaseMessage;
 
 public interface ConnectionCallback {
 

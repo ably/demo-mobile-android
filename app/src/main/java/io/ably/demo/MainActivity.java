@@ -33,12 +33,12 @@ import java.util.Map;
 
 import io.ably.demo.connection.Connection;
 import io.ably.demo.connection.ConnectionCallback;
-import io.ably.realtime.Channel;
-import io.ably.realtime.Presence;
-import io.ably.types.AblyException;
-import io.ably.types.BaseMessage;
-import io.ably.types.Message;
-import io.ably.types.PresenceMessage;
+import io.ably.lib.realtime.Channel;
+import io.ably.lib.realtime.Presence;
+import io.ably.lib.types.AblyException;
+import io.ably.lib.types.BaseMessage;
+import io.ably.lib.types.Message;
+import io.ably.lib.types.PresenceMessage;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
@@ -131,12 +131,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
 
+    private void addCurrentMembers() {
+        for (PresenceMessage presenceMessage:Connection.getInstance().getPresentUsers()) {
+            if (!presenceMessage.clientId.equals(Connection.getInstance().userName)) {
+                presentUsers.add(presenceMessage.clientId);
+            }
+        }
+        updatePresentUsersBadge();
+    }
+
     private ConnectionCallback chatInitializedCallback = new ConnectionCallback() {
         @Override
         public void onConnectionCallback() throws AblyException {
+            addCurrentMembers();
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+
                     findViewById(R.id.progressBar).setVisibility(View.GONE);
                     findViewById(R.id.chatLayout).setVisibility(View.VISIBLE);
                     ((EditText) findViewById(R.id.textET)).addTextChangedListener(isUserTypingTextWatcher);
@@ -164,6 +175,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public void onConnectionCallbackWithResult(BaseMessage[] result) throws AblyException {
+            adapter.addItems(result);
+            /*runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Connection.getInstance().getPresenceHistory(getPresenceCallback);
+                    } catch (AblyException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });*/
+        }
+    };
+
+    private ConnectionCallback getPresenceCallback = new ConnectionCallback() {
+        @Override
+        public void onConnectionCallback() throws AblyException {
+            Log.d("s","s");
+        }
+
+        @Override
+        public void onConnectionCallbackWithResult(BaseMessage[] result) throws AblyException {
+            Log.d("s","s");
             adapter.addItems(result);
         }
     };
@@ -261,10 +295,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     case LEAVE:
                         adapter.addItems(presenceMessages);
                         presentUsers.remove(presenceMessage.clientId);
-                        updatePresentUsersBadge();
-                        break;
-                    case PRESENT:
-                        presentUsers.add(presenceMessage.clientId);
                         updatePresentUsersBadge();
                         break;
                     case UPDATE:

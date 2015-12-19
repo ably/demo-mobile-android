@@ -8,19 +8,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.ably.demo.MainActivity;
-import io.ably.realtime.AblyRealtime;
-import io.ably.realtime.Channel;
-import io.ably.realtime.CompletionListener;
-import io.ably.realtime.ConnectionStateListener;
-import io.ably.realtime.Presence;
-import io.ably.types.AblyException;
-import io.ably.types.BaseMessage;
-import io.ably.types.ClientOptions;
-import io.ably.types.ErrorInfo;
-import io.ably.types.Message;
-import io.ably.types.PaginatedResult;
-import io.ably.types.Param;
-import io.ably.types.PresenceMessage;
+import io.ably.lib.realtime.AblyRealtime;
+import io.ably.lib.realtime.Channel;
+import io.ably.lib.realtime.CompletionListener;
+import io.ably.lib.realtime.ConnectionStateListener;
+import io.ably.lib.realtime.Presence;
+import io.ably.lib.types.AblyException;
+import io.ably.lib.types.BaseMessage;
+import io.ably.lib.types.ClientOptions;
+import io.ably.lib.types.ErrorInfo;
+import io.ably.lib.types.Message;
+import io.ably.lib.types.PaginatedResult;
+import io.ably.lib.types.Param;
+import io.ably.lib.types.PresenceMessage;
 
 
 public class Connection {
@@ -56,7 +56,7 @@ public class Connection {
 
         //channel with history and presence
         clientOptions.authUrl = "https://www.ably.io/ably-auth/token-request/demos";
-        clientOptions.logLevel = io.ably.util.Log.VERBOSE;
+        clientOptions.logLevel = io.ably.lib.util.Log.VERBOSE;
         clientOptions.clientId = userName;
         //endregion
 
@@ -100,6 +100,10 @@ public class Connection {
                 }//end of switch
             }
         });
+    }
+
+    public PresenceMessage[] getPresentUsers() {
+        return sessionChannel.presence.get();
     }
 
     public void getPresenceHistory(final ConnectionCallback callback) throws AblyException {
