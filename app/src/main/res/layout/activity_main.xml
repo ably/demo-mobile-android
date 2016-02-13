@@ -6,27 +6,58 @@
     <RelativeLayout
          android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center_vertical|center_horizontal"  android:id="@+id/loginLayout"
-        android:visibility="visible">
+        android:id="@+id/loginLayout"
+        android:visibility="visible"
+        android:gravity="center_vertical|center_horizontal">
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageView"
+            android:src="@drawable/ablylogotilerectangle" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Realtime chat demo"
+            android:id="@+id/textView"
+            android:background="@drawable/textshape"
+            android:layout_alignLeft="@+id/imageView"
+            android:layout_alignRight="@+id/imageView"
+            android:layout_below="@+id/imageView"
+            android:layout_marginTop="5dp"
+            android:padding="3dp"
+            android:gravity="center_horizontal"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold" />
 
         <EditText
-            android:layout_width="200dp"
-            android:layout_height="35dp"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
             android:id="@+id/usernameET"
-            android:background="#ffffff"
-            android:hint="Username"
-            android:textColorHint="#93b0b0b0"
-            android:textSize="22dp"
-            android:gravity="center_vertical"
-            android:paddingLeft="5dp"/>
+            android:layout_below="@+id/textView"
+            android:layout_alignParentEnd="false"
+            android:layout_alignParentStart="false"
+            android:layout_alignLeft="@+id/imageView"
+            android:layout_alignRight="@+id/imageView"
+            android:textColor="#000000"
+            android:textColorHint="#22000000"
+            android:hint="\@handle"
+            android:background="@drawable/usernameshape"
+            android:layout_marginTop="70dp"
+            android:padding="8dp" />
 
         <Button
-            android:layout_width="70dp"
-            android:layout_height="35dp"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
             android:text="Join"
             android:id="@+id/joinBtn"
-            android:layout_toRightOf="@+id/usernameET"
-            android:gravity="center_vertical|center_horizontal" />
+            android:layout_alignLeft="@+id/imageView"
+            android:layout_alignRight="@+id/imageView"
+            android:layout_below="@+id/usernameET"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/joinbuttonshape"
+            android:layout_marginTop="3dp" />
+
     </RelativeLayout>
     <ProgressBar
         android:layout_gravity="center"
@@ -52,46 +83,54 @@
             android:visibility="gone" android:textColor="#22000000" />
 
         <LinearLayout
-            android:background="#959595"
-            android:gravity="center_vertical"
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:id="@+id/controllsLL"
-            android:visibility="visible">
+            android:visibility="visible"
+            android:background="#FFB600"
+            android:gravity="center_vertical"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp">
 
-            <RelativeLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-                <ImageButton
-                    android:layout_width="80dp"
-                    android:layout_height="50dp"
-                    android:text="Mntn" android:src="@drawable/people" android:paddingRight="30dp"
-                    android:id="@+id/mentionBtn" android:visibility="visible" android:scaleType="fitCenter" />
-                <TextView
-                    android:text="1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="false"
-                    android:layout_toRightOf="@+id/mentionBtn"
-                    android:layout_marginLeft="-20dp"
-                    android:layout_centerVertical="true"
-                    android:id="@+id/presenceBadge" />
-            </RelativeLayout>
             <EditText
                 android:layout_weight="1"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/textET"
                 android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp"/>
+                android:layout_marginRight="5dp"
+                android:background="@drawable/usernameshape"
+                android:hint="your message"
+                android:textColorHint="#AAAAAA"
+                android:paddingLeft="5dp" />
 
-            <Button
-                android:layout_width="80dp"
-                android:layout_height="wrap_content"
-                android:text="Send"
-                android:id="@+id/sendBtn" />
         </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="-73dp">
+            <ImageButton
+                android:layout_width="50dp"
+                android:layout_height="25dp"
+                android:text="Mntn" android:src="@drawable/icperson"
+                android:id="@+id/mentionBtn" android:visibility="visible" android:scaleType="fitCenter"
+                android:layout_alignParentEnd="true"
+                android:paddingLeft="30dp"
+                android:background="@drawable/mentionshape"
+                android:paddingRight="8dp" />
+            <TextView
+                android:text="1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="false"
+                android:layout_centerVertical="true"
+                android:id="@+id/presenceBadge"
+                android:layout_toLeftOf="@+id/mentionBtn"
+                android:layout_marginRight="-20dp"
+                android:textColor="#FFFFFF" />
+        </RelativeLayout>
 
     </LinearLayout>
 </FrameLayout>

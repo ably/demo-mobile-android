@@ -54,7 +54,7 @@ public class Connection {
         //one more channel
         //clientOptions.key = "I2E_JQ.1QRmxw:ftN1OHLeV4k9EEtQ";
 
-        //channel with history and presence
+        //channel with history and presenceout
         clientOptions.authUrl = "https://www.ably.io/ably-auth/token-request/demos";
         clientOptions.logLevel = io.ably.lib.util.Log.VERBOSE;
         clientOptions.clientId = userName;
@@ -169,7 +169,7 @@ public class Connection {
 
     }
 
-    //this registers for presence and sets presence and messages listeners
+    //this registers for presenceout and sets presenceout and messages listeners
     public void init(Channel.MessageListener listener, Presence.PresenceListener presenceListener, final ConnectionCallback callback) throws AblyException {
         sessionChannel.subscribe(listener);
         messageListener = listener;

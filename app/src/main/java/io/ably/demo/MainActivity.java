@@ -28,6 +28,8 @@ import org.w3c.dom.Text;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Map;
 
@@ -64,7 +66,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         findViewById(R.id.joinBtn).setOnClickListener(this);
-        findViewById(R.id.sendBtn).setOnClickListener(this);
         findViewById(R.id.mentionBtn).setOnClickListener(this);
     }
 
@@ -243,20 +244,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
                 adBuilder.show();
                 break;
-            case R.id.sendBtn:
-                try {
-                    Connection.getInstance().sendMessage(((EditText) findViewById(R.id.textET)).getText().toString());
-                    ((EditText) findViewById(R.id.textET)).setText("");
-                } catch (AblyException e) {
-                    e.printStackTrace();
-                }
-                break;
         }//end of switch
 
 
         if (v.getId() == R.id.joinBtn) {
-
-        } else if (v.getId() == R.id.sendBtn) {
 
         }
 
@@ -298,7 +289,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         updatePresentUsersBadge();
                         break;
                     case UPDATE:
-                        //handling of update user presence
+                        //handling of update user presenceout
                         if (!presenceMessage.clientId.equals(Connection.getInstance().userName)) {
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -359,6 +350,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
+    public class itemsTimeComparator implements Comparator<BaseMessage>
+    {
+        public int compare(BaseMessage left, BaseMessage right) {
+            int res =(int) (left.timestamp - right.timestamp);
+            return res;
+        }
+    }
+
     public class ChatScreenAdapter extends BaseAdapter
     {
         LayoutInflater layoutInflater = getLayoutInflater();
@@ -370,7 +369,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             {
                 items.add(item);
             }
-
+            Collections.sort(items,new itemsTimeComparator());
             notifyChange();
         }
 
@@ -379,6 +378,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+
                     notifyDataSetChanged();
                 }
             });
@@ -401,48 +401,51 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            View view = convertView;
 
             SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
 
             if (items.get(position) instanceof Message) {
                 //case for messages
 
-                view = layoutInflater.inflate(R.layout.chatitem, parent,false);
+                convertView = layoutInflater.inflate(R.layout.chatitem, parent,false);
 
                 Message message = ((Message) items.get(position));
                 String userName = message.clientId;
 
                 if (userName==null)
                 {
-                    ((TextView) view.findViewById(R.id.username)).setText(Connection.getInstance().userName);
-                    view.setBackgroundResource(R.drawable.outgoingmessage);
+                    ((TextView) convertView.findViewById(R.id.username)).setText(Connection.getInstance().userName);
+                    convertView.setBackground(getResources().getDrawable(R.drawable.outgoingmessage));
                 }
                 else
                 {
-                    ((TextView) view.findViewById(R.id.username)).setText(userName);
-                    view.setBackgroundResource(R.drawable.incommingmessage);
+                    ((TextView) convertView.findViewById(R.id.username)).setText(userName);
+                    //convertView.setBackground(getResources().getDrawable(R.drawable.incommingmessage));
                 }
                 String dateString = formatter.format(new Date(message.timestamp));
-                ((TextView) view.findViewById(R.id.timestamp)).setText(dateString);
-                ((TextView) view.findViewById(R.id.message)).setText(message.data.toString());
+                ((TextView) convertView.findViewById(R.id.timestamp)).setText(dateString);
+                ((TextView) convertView.findViewById(R.id.message)).setText(message.data.toString());
             } else {
-                //case for presence item
-                view = layoutInflater.inflate(R.layout.presenceitem, parent,false);
+                //case for presenceout item
+                convertView = layoutInflater.inflate(R.layout.presenceitem, parent,false);
 
                 PresenceMessage presenceMessage = ((PresenceMessage) items.get(position));
                 String actionToShow = "";
                 if (presenceMessage.action.equals(PresenceMessage.Action.ENTER)) {
+                    ((TextView) convertView.findViewById(R.id.action)).setTextColor(Color.rgb(255,255,255));
+                    convertView.findViewById(R.id.userInfo).setBackground(getResources().getDrawable(R.drawable.presencein));
                     actionToShow = " has entered the channel";
                 } else if (presenceMessage.action.equals(PresenceMessage.Action.LEAVE)) {
+                    ((TextView) convertView.findViewById(R.id.action)).setTextColor(Color.rgb(11,11,11));
+                    convertView.findViewById(R.id.userInfo).setBackground(getResources().getDrawable(R.drawable.presenceout));
                         actionToShow = " has left the channel";
                     }
-                ((TextView) view.findViewById(R.id.action)).setText(presenceMessage.clientId + actionToShow);
+                ((TextView) convertView.findViewById(R.id.action)).setText(presenceMessage.clientId + actionToShow);
                 String dateString = formatter.format(new Date(presenceMessage.timestamp));
-                ((TextView) view.findViewById(R.id.presenceTimeStamp)).setText(dateString);
+                ((TextView) convertView.findViewById(R.id.presenceTimeStamp)).setText(dateString);
             }
 
-            return view;
+            return convertView;
         }
     }
 
