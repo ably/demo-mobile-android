@@ -44,7 +44,8 @@
             android:hint="\@handle"
             android:background="@drawable/usernameshape"
             android:layout_marginTop="70dp"
-            android:padding="8dp" />
+            android:padding="8dp"
+            android:singleLine="true" />
 
         <Button
             android:layout_width="wrap_content"
@@ -103,7 +104,10 @@
                 android:background="@drawable/usernameshape"
                 android:hint="your message"
                 android:textColorHint="#AAAAAA"
-                android:paddingLeft="5dp" />
+                android:paddingLeft="5dp"
+                android:singleLine="true"
+                android:inputType="text"
+                android:imeOptions="actionSend"/>
 
         </LinearLayout>
 
