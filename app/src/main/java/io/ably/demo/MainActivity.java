@@ -282,78 +282,71 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     Channel.MessageListener messageListener = new Channel.MessageListener() {
         @Override
-        public void onMessage(Message[] messages) {
-            adapter.addItems(messages);
+        public void onMessage(Message message) {
+            adapter.addItems(new Message[] { message });
         }
     };
 
     Presence.PresenceListener presenceListener = new Presence.PresenceListener() {
         @Override
-        public void onPresenceMessage(PresenceMessage[] presenceMessages) {
-            for (final PresenceMessage presenceMessage:presenceMessages) {
+        public void onPresenceMessage(final PresenceMessage presenceMessage) {
+            switch (presenceMessage.action) {
+                case enter:
+                    adapter.addItems(new PresenceMessage[] { presenceMessage });
+                    presentUsers.add(presenceMessage.clientId);
+                    updatePresentUsersBadge();
+                    break;
+                case leave:
+                    adapter.addItems(new PresenceMessage[] { presenceMessage } );
+                    presentUsers.remove(presenceMessage.clientId);
+                    updatePresentUsersBadge();
+                    break;
+                case update:
+                    //handling of update user presenceout
+                    if (!presenceMessage.clientId.equals(Connection.getInstance().userName)) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (((Map<String, Boolean>) presenceMessage.data).get("isTyping")) {
+                                    usersCurrentlyTyping.add(presenceMessage.clientId);
 
-
-                switch (presenceMessage.action)
-                {
-                    case ENTER:
-                        adapter.addItems(presenceMessages);
-                        presentUsers.add(presenceMessage.clientId);
-                        updatePresentUsersBadge();
-                        break;
-                    case LEAVE:
-                        adapter.addItems(presenceMessages);
-                        presentUsers.remove(presenceMessage.clientId);
-                        updatePresentUsersBadge();
-                        break;
-                    case UPDATE:
-                        //handling of update user presenceout
-                        if (!presenceMessage.clientId.equals(Connection.getInstance().userName)) {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (((Map<String,Boolean>) presenceMessage.data).get("isTyping")) {
-                                        usersCurrentlyTyping.add(presenceMessage.clientId);
-
-                                    } else {
-                                        usersCurrentlyTyping.remove(presenceMessage.clientId);
-                                    }
-                                    if (usersCurrentlyTyping.size() > 0)
-                                    {
-                                        StringBuilder messageToShow = new StringBuilder();
-                                        switch (usersCurrentlyTyping.size())
-                                        {
-                                            case 1:
-                                                messageToShow.append( usersCurrentlyTyping.get(0) + " is typing");
-                                                break;
-                                            case 2:
-                                                messageToShow.append( usersCurrentlyTyping.get(0) + " & ");
-                                                messageToShow.append( usersCurrentlyTyping.get(1) + " are typing");
-                                                break;
-                                            default :
-                                                if (usersCurrentlyTyping.size() > 4) {
-                                                    messageToShow.append(usersCurrentlyTyping.get(0) + ", ");
-                                                    messageToShow.append(usersCurrentlyTyping.get(1) + ", ");
-                                                    messageToShow.append(usersCurrentlyTyping.get(2) + " & other are typing");
-                                                } else {
-                                                    int i;
-                                                    for (i=0; i < usersCurrentlyTyping.size()-1; ++i) {
-                                                        messageToShow.append(usersCurrentlyTyping.get(i) + ", ");
-                                                    }
-                                                    messageToShow.append(" & " + usersCurrentlyTyping.get(i) + " are typing");
-                                                }
-                                        }//end of switch
-
-                                        ((TextView) findViewById(R.id.isTyping)).setText(messageToShow.toString());
-                                        findViewById(R.id.isTyping).setVisibility(View.VISIBLE);
-                                    } else {
-                                        findViewById(R.id.isTyping).setVisibility(View.GONE);
-                                    }
+                                } else {
+                                    usersCurrentlyTyping.remove(presenceMessage.clientId);
                                 }
-                            });
+                                if (usersCurrentlyTyping.size() > 0) {
+                                    StringBuilder messageToShow = new StringBuilder();
+                                    switch (usersCurrentlyTyping.size()) {
+                                        case 1:
+                                            messageToShow.append(usersCurrentlyTyping.get(0) + " is typing");
+                                            break;
+                                        case 2:
+                                            messageToShow.append(usersCurrentlyTyping.get(0) + " & ");
+                                            messageToShow.append(usersCurrentlyTyping.get(1) + " are typing");
+                                            break;
+                                        default:
+                                            if (usersCurrentlyTyping.size() > 4) {
+                                                messageToShow.append(usersCurrentlyTyping.get(0) + ", ");
+                                                messageToShow.append(usersCurrentlyTyping.get(1) + ", ");
+                                                messageToShow.append(usersCurrentlyTyping.get(2) + " & other are typing");
+                                            } else {
+                                                int i;
+                                                for (i = 0; i < usersCurrentlyTyping.size() - 1; ++i) {
+                                                    messageToShow.append(usersCurrentlyTyping.get(i) + ", ");
+                                                }
+                                                messageToShow.append(" & " + usersCurrentlyTyping.get(i) + " are typing");
+                                            }
+                                    }//end of switch
 
-                        }
-                        break;
-                }
+                                    ((TextView) findViewById(R.id.isTyping)).setText(messageToShow.toString());
+                                    findViewById(R.id.isTyping).setVisibility(View.VISIBLE);
+                                } else {
+                                    findViewById(R.id.isTyping).setVisibility(View.GONE);
+                                }
+                            }
+                        });
+
+                    }
+                    break;
             }
         }
     };
@@ -448,11 +441,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 PresenceMessage presenceMessage = ((PresenceMessage) items.get(position));
                 String actionToShow = "";
-                if (presenceMessage.action.equals(PresenceMessage.Action.ENTER)) {
+                if (presenceMessage.action.equals(PresenceMessage.Action.enter)) {
                     ((TextView) convertView.findViewById(R.id.action)).setTextColor(Color.rgb(255,255,255));
                     convertView.findViewById(R.id.userInfo).setBackground(getResources().getDrawable(R.drawable.presencein));
                     actionToShow = " has entered the channel";
-                } else if (presenceMessage.action.equals(PresenceMessage.Action.LEAVE)) {
+                } else if (presenceMessage.action.equals(PresenceMessage.Action.leave)) {
                     ((TextView) convertView.findViewById(R.id.action)).setTextColor(Color.rgb(11,11,11));
                     convertView.findViewById(R.id.userInfo).setBackground(getResources().getDrawable(R.drawable.presenceout));
                         actionToShow = " has left the channel";
