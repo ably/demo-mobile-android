@@ -1,35 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:background="@drawable/incommingmessage">
-
-    <TextView
+    android:layout_height="wrap_content">
+    <RelativeLayout
+        android:id="@+id/incommingRL"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/username"
-        android:layout_alignParentTop="false"
-        android:layout_alignParentLeft="false"
-        android:layout_alignParentStart="false"
-        android:layout_marginLeft="20dp" />
+        android:visibility="visible"
+        android:background="@drawable/newgreybaloon">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New Text"
+            android:id="@+id/username"
+            android:layout_alignParentTop="false"
+            android:layout_alignParentLeft="false"
+            android:layout_alignParentStart="false"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="5dp" />
 
-    <TextView
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New Text"
+            android:id="@+id/timestamp"
+            android:layout_alignParentEnd="false"
+            android:layout_alignTop="@+id/username"
+            android:layout_marginRight="25dp"
+            android:layout_toRightOf="@+id/message"
+            android:layout_marginLeft="25dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New Text"
+            android:id="@+id/message"
+            android:layout_below="@+id/username"
+            android:layout_marginTop="5dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginBottom="5dp" />
+    </RelativeLayout>
+    <RelativeLayout
+        android:id="@+id/outgoingRL"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/timestamp"
+        android:background="@drawable/newgreenbaloon"
         android:layout_alignParentEnd="true"
-        android:layout_alignTop="@+id/username"
-        android:layout_marginRight="20dp" />
+        android:visibility="gone">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New Text"
+            android:id="@+id/usernameO"
+            android:layout_alignParentTop="false"
+            android:layout_alignParentLeft="false"
+            android:layout_alignParentStart="false"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="5dp" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/message"
-        android:layout_below="@+id/username"
-        android:layout_marginTop="5dp"
-        android:layout_marginLeft="20dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New Text"
+            android:id="@+id/timestampO"
+            android:layout_alignParentEnd="false"
+            android:layout_alignTop="@+id/usernameO"
+            android:layout_marginRight="25dp"
+            android:layout_toRightOf="@+id/messageO"
+            android:layout_marginLeft="25dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New Text"
+            android:id="@+id/messageO"
+            android:layout_below="@+id/usernameO"
+            android:layout_marginTop="5dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginBottom="5dp" />
+    </RelativeLayout>
 
 </RelativeLayout>
