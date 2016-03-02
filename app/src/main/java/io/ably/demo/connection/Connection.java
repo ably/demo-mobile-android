@@ -3,6 +3,8 @@ package io.ably.demo.connection;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.google.gson.JsonObject;
+
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;
@@ -222,8 +224,9 @@ public class Connection {
     public void userHasStartedTyping()
     {
         try {
-            Map<String,Boolean> payload = new HashMap<>();
-            payload.put("isTyping",true);
+            JsonObject payload = new JsonObject();
+            payload.addProperty("isTyping", true);
+
             sessionChannel.presence.update(payload, new CompletionListener() {
                 @Override
                 public void onSuccess() {
@@ -235,16 +238,16 @@ public class Connection {
                     Log.d("","");
                 }
             });
-        } catch (AblyException e) {
+        } catch (AblyException e){
             e.printStackTrace();
         }
     }
 
     public void userHasEndedTyping()
     {
-        Map<String,Boolean> payload = new HashMap<>();
-        payload.put("isTyping",false);
         try {
+            JsonObject payload = new JsonObject();
+            payload.addProperty("isTyping",false);
             sessionChannel.presence.update(payload,null);
         } catch (AblyException e) {
             e.printStackTrace();

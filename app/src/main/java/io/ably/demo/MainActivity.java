@@ -26,6 +26,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.JsonObject;
+
 import org.w3c.dom.Text;
 
 import java.text.SimpleDateFormat;
@@ -307,12 +309,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                if (((Map<String, Boolean>) presenceMessage.data).get("isTyping")) {
-                                    usersCurrentlyTyping.add(presenceMessage.clientId);
+                                if(!(presenceMessage.data instanceof JsonObject)) {
+                                    return;
+                                }
 
+                                boolean isUserTyping = ((JsonObject) presenceMessage.data).get("isTyping").getAsBoolean();
+                                if (isUserTyping) {
+                                    usersCurrentlyTyping.add(presenceMessage.clientId);
                                 } else {
                                     usersCurrentlyTyping.remove(presenceMessage.clientId);
                                 }
+
                                 if (usersCurrentlyTyping.size() > 0) {
                                     StringBuilder messageToShow = new StringBuilder();
                                     switch (usersCurrentlyTyping.size()) {
@@ -344,7 +351,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 }
                             }
                         });
-
                     }
                     break;
             }
