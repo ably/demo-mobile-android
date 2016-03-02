@@ -5,11 +5,6 @@ import android.util.Log;
 
 import com.google.gson.JsonObject;
 
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Map;
-
-import io.ably.demo.MainActivity;
 import io.ably.lib.realtime.AblyRealtime;
 import io.ably.lib.realtime.Channel;
 import io.ably.lib.realtime.CompletionListener;
@@ -32,39 +27,32 @@ public class Connection {
     private final String HISTORY_LIMIT = "50";
     private Channel sessionChannel;
     private AblyRealtime ablyRealtime;
-    private Connection() {}
+
+    private Connection() {
+    }
 
     private Channel.MessageListener messageListener;
     private Presence.PresenceListener presenceListener;
 
     private static Connection instance = new Connection();
 
-    public static Connection getInstance() {return instance;}
+    public static Connection getInstance() {
+        return instance;
+    }
 
     public String userName;
 
-    public void establishConnectionForID(String userName,final ConnectionCallback callback) throws AblyException {
-        //setting userName for future channels calls
+    public void establishConnectionForID(String userName, final ConnectionCallback callback) throws AblyException {
         this.userName = userName;
 
-        //region setting clientOption
         ClientOptions clientOptions = new ClientOptions();
 
-        //some channel
-        //clientOptions.key = "xVLyHw.thZlGw:YMexFEbld2BPP_hK";
-
-        //one more channel
-        //clientOptions.key = "I2E_JQ.1QRmxw:ftN1OHLeV4k9EEtQ";
-
-        //channel with history and presenceout
         clientOptions.authUrl = "https://www.ably.io/ably-auth/token-request/demos";
         clientOptions.logLevel = io.ably.lib.util.Log.VERBOSE;
         clientOptions.clientId = userName;
-        //endregion
 
-        //creating an AblyRealtime instance
         ablyRealtime = new AblyRealtime(clientOptions);
-        //setting listener for states, we want to execute the callback only after we are successfully connected
+
         ablyRealtime.connection.on(new ConnectionStateListener() {
             @Override
             public void onConnectionStateChanged(ConnectionStateChange connectionStateChange) {
@@ -76,7 +64,6 @@ public class Connection {
                     case connecting:
                         break;
                     case connected:
-                        //after state "connected" we set the channel field and execute the callback
                         sessionChannel = ablyRealtime.channels.get(ABLY_CHANNEL_NAME);
 
                         try {
@@ -85,7 +72,7 @@ public class Connection {
                             callback.onConnectionCallback();
                         } catch (AblyException e) {
                             e.printStackTrace();
-                            Log.e("ChannelAttach","Something went wrong!");
+                            Log.e("ChannelAttach", "Something went wrong!");
                         }
                         break;
                     case disconnected:
@@ -99,7 +86,7 @@ public class Connection {
                         break;
                     case failed:
                         break;
-                }//end of switch
+                }
             }
         });
     }
@@ -112,9 +99,9 @@ public class Connection {
         AsyncTask getPresenceHistoryTask = new AsyncTask() {
             @Override
             protected Object doInBackground(Object[] params) {
-                Param param1 = new Param("limit",HISTORY_LIMIT);
-                Param param2 = new Param("direction",HISTORY_DIRECTION);
-                Param[] presenceHistoryParams = {param1,param2};
+                Param param1 = new Param("limit", HISTORY_LIMIT);
+                Param param2 = new Param("direction", HISTORY_DIRECTION);
+                Param[] presenceHistoryParams = {param1, param2};
                 try {
                     PaginatedResult<PresenceMessage> messages = sessionChannel.presence.history(presenceHistoryParams);
                     return messages.items();
@@ -136,16 +123,15 @@ public class Connection {
             }
         };
         getPresenceHistoryTask.execute();
-
     }
 
     public void getMessagesHistory(final ConnectionCallback callback) throws AblyException {
         AsyncTask getMessageHistory = new AsyncTask() {
             @Override
             protected Object doInBackground(Object[] params) {
-                Param param1 = new Param("limit",HISTORY_LIMIT);
-                Param param2 = new Param("direction",HISTORY_DIRECTION);
-                Param[] historyCallParams = {param1,param2};
+                Param param1 = new Param("limit", HISTORY_LIMIT);
+                Param param2 = new Param("direction", HISTORY_DIRECTION);
+                Param[] historyCallParams = {param1, param2};
                 final PaginatedResult<Message> messages;
                 try {
                     messages = sessionChannel.history(historyCallParams);
@@ -171,7 +157,6 @@ public class Connection {
 
     }
 
-    //this registers for presenceout and sets presenceout and messages listeners
     public void init(Channel.MessageListener listener, Presence.PresenceListener presenceListener, final ConnectionCallback callback) throws AblyException {
         sessionChannel.subscribe(listener);
         messageListener = listener;
@@ -209,7 +194,7 @@ public class Connection {
     }
 
     public void reconnectAbly() {
-        if (ablyRealtime !=null) {
+        if (ablyRealtime != null) {
             ablyRealtime.connection.connect();
         }
     }
@@ -221,8 +206,7 @@ public class Connection {
         }
     }
 
-    public void userHasStartedTyping()
-    {
+    public void userHasStartedTyping() {
         try {
             JsonObject payload = new JsonObject();
             payload.addProperty("isTyping", true);
@@ -230,28 +214,26 @@ public class Connection {
             sessionChannel.presence.update(payload, new CompletionListener() {
                 @Override
                 public void onSuccess() {
-                    Log.d("","");
+                    Log.d("", "");
                 }
 
                 @Override
                 public void onError(ErrorInfo errorInfo) {
-                    Log.d("","");
+                    Log.d("", "");
                 }
             });
-        } catch (AblyException e){
-            e.printStackTrace();
-        }
-    }
-
-    public void userHasEndedTyping()
-    {
-        try {
-            JsonObject payload = new JsonObject();
-            payload.addProperty("isTyping",false);
-            sessionChannel.presence.update(payload,null);
         } catch (AblyException e) {
             e.printStackTrace();
         }
     }
 
+    public void userHasEndedTyping() {
+        try {
+            JsonObject payload = new JsonObject();
+            payload.addProperty("isTyping", false);
+            sessionChannel.presence.update(payload, null);
+        } catch (AblyException e) {
+            e.printStackTrace();
+        }
+    }
 }

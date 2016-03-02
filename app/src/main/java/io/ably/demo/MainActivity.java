@@ -1,6 +1,5 @@
 package io.ably.demo;
 
-import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -19,7 +18,6 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -28,14 +26,11 @@ import android.widget.Toast;
 
 import com.google.gson.JsonObject;
 
-import org.w3c.dom.Text;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.Map;
 
 import io.ably.demo.connection.Connection;
 import io.ably.demo.connection.ConnectionCallback;
@@ -46,7 +41,7 @@ import io.ably.lib.types.BaseMessage;
 import io.ably.lib.types.Message;
 import io.ably.lib.types.PresenceMessage;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     ChatScreenAdapter adapter;
     private boolean activityPaused = false;
@@ -74,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ((TextView) findViewById(R.id.textET)).setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if(actionId == EditorInfo.IME_ACTION_SEND) {
+                if (actionId == EditorInfo.IME_ACTION_SEND) {
                     try {
                         String message = ((EditText) findViewById(R.id.textET)).getText().toString();
                         Connection.getInstance().sendMessage(message);
@@ -91,20 +86,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onResume() {
         super.onResume();
-        if (activityPaused)
-        {
+        if (activityPaused) {
             Connection.getInstance().reconnectAbly();
             activityPaused = false;
         }
     }
 
-    private void showChatScreen(){
+    private void showChatScreen() {
         findViewById(R.id.loginLayout).setVisibility(View.GONE);
 
         adapter = new ChatScreenAdapter();
         ((ListView) findViewById(R.id.chatList)).setAdapter(adapter);
         try {
-            Connection.getInstance().init(messageListener,presenceListener,chatInitializedCallback);
+            Connection.getInstance().init(messageListener, presenceListener, chatInitializedCallback);
         } catch (AblyException e) {
             e.printStackTrace();
         }
@@ -141,8 +135,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public void afterTextChanged(Editable s) {
-            if (!typingFlag)
-            {
+            if (!typingFlag) {
                 Connection.getInstance().userHasStartedTyping();
                 typingFlag = true;
             }
@@ -152,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     };
 
     private void addCurrentMembers() {
-        for (PresenceMessage presenceMessage:Connection.getInstance().getPresentUsers()) {
+        for (PresenceMessage presenceMessage : Connection.getInstance().getPresentUsers()) {
             if (!presenceMessage.clientId.equals(Connection.getInstance().userName)) {
                 presentUsers.add(presenceMessage.clientId);
             }
@@ -212,38 +205,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ConnectionCallback getPresenceCallback = new ConnectionCallback() {
         @Override
         public void onConnectionCallback() throws AblyException {
-            Log.d("s","s");
+            Log.d("s", "s");
         }
 
         @Override
         public void onConnectionCallbackWithResult(BaseMessage[] result) throws AblyException {
-            Log.d("s","s");
+            Log.d("s", "s");
             adapter.addItems(result);
         }
     };
 
     @Override
     public void onClick(View v) {
-        //showing the chat screen
-
-        switch (v.getId())
-        {
+        switch (v.getId()) {
             case R.id.joinBtn:
                 View view = getCurrentFocus();
                 if (view != null) {
-                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
                 }
                 findViewById(R.id.loginLayout).setVisibility(View.GONE);
                 findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-                //establishing connection with ably service
+
                 try {
                     String clientId = ((TextView) findViewById(R.id.usernameET)).getText().toString();
 
-                    //execute fragment transaction only after successful connection
                     Connection.getInstance().establishConnectionForID(clientId, connectionCallback);
                 } catch (AblyException e) {
-                    Toast.makeText(this,R.string.unabletoconnet,Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, R.string.unabletoconnet, Toast.LENGTH_LONG).show();
                     Log.e("AblyConnection", e.getMessage());
                 }
                 break;
@@ -263,13 +252,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
                 adBuilder.show();
                 break;
-        }//end of switch
-
+        }
 
         if (v.getId() == R.id.joinBtn) {
 
         }
-
     }
 
     @Override
@@ -285,7 +272,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Channel.MessageListener messageListener = new Channel.MessageListener() {
         @Override
         public void onMessage(Message message) {
-            adapter.addItems(new Message[] { message });
+            adapter.addItems(new Message[]{message});
         }
     };
 
@@ -294,22 +281,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public void onPresenceMessage(final PresenceMessage presenceMessage) {
             switch (presenceMessage.action) {
                 case enter:
-                    adapter.addItems(new PresenceMessage[] { presenceMessage });
+                    adapter.addItems(new PresenceMessage[]{presenceMessage});
                     presentUsers.add(presenceMessage.clientId);
                     updatePresentUsersBadge();
                     break;
                 case leave:
-                    adapter.addItems(new PresenceMessage[] { presenceMessage } );
+                    adapter.addItems(new PresenceMessage[]{presenceMessage});
                     presentUsers.remove(presenceMessage.clientId);
                     updatePresentUsersBadge();
                     break;
                 case update:
-                    //handling of update user presenceout
                     if (!presenceMessage.clientId.equals(Connection.getInstance().userName)) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                if(!(presenceMessage.data instanceof JsonObject)) {
+                                if (!(presenceMessage.data instanceof JsonObject)) {
                                     return;
                                 }
 
@@ -342,7 +328,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                 }
                                                 messageToShow.append(" & " + usersCurrentlyTyping.get(i) + " are typing");
                                             }
-                                    }//end of switch
+                                    }
 
                                     ((TextView) findViewById(R.id.isTyping)).setText(messageToShow.toString());
                                     findViewById(R.id.isTyping).setVisibility(View.VISIBLE);
@@ -366,31 +352,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    public class itemsTimeComparator implements Comparator<BaseMessage>
-    {
+    public class itemsTimeComparator implements Comparator<BaseMessage> {
         public int compare(BaseMessage left, BaseMessage right) {
-            int res =(int) (left.timestamp - right.timestamp);
+            int res = (int) (left.timestamp - right.timestamp);
             return res;
         }
     }
 
-    public class ChatScreenAdapter extends BaseAdapter
-    {
+    public class ChatScreenAdapter extends BaseAdapter {
         LayoutInflater layoutInflater = getLayoutInflater();
         ArrayList<BaseMessage> items = new ArrayList<>();
 
-        public void addItems(BaseMessage[] newItems)
-        {
-            for (BaseMessage item:newItems)
-            {
+        public void addItems(BaseMessage[] newItems) {
+            for (BaseMessage item : newItems) {
                 items.add(item);
             }
-            Collections.sort(items,new itemsTimeComparator());
+            Collections.sort(items, new itemsTimeComparator());
             notifyChange();
         }
 
-        private void notifyChange()
-        {
+        private void notifyChange() {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -421,41 +402,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
 
             if (items.get(position) instanceof Message) {
-                //case for messages
-
-                convertView = layoutInflater.inflate(R.layout.chatitem, parent,false);
+                convertView = layoutInflater.inflate(R.layout.chatitem, parent, false);
 
                 Message message = ((Message) items.get(position));
                 String userName = message.clientId;
 
-                if (userName==null)
-                {
+                if (userName == null) {
                     ((TextView) convertView.findViewById(R.id.username)).setText(Connection.getInstance().userName);
                     convertView.setBackground(getResources().getDrawable(R.drawable.outgoingmessage));
-                }
-                else
-                {
+                } else {
                     ((TextView) convertView.findViewById(R.id.username)).setText(userName);
-                    //convertView.setBackground(getResources().getDrawable(R.drawable.incommingmessage));
                 }
                 String dateString = formatter.format(new Date(message.timestamp));
                 ((TextView) convertView.findViewById(R.id.timestamp)).setText(dateString);
                 ((TextView) convertView.findViewById(R.id.message)).setText(message.data.toString());
             } else {
-                //case for presenceout item
-                convertView = layoutInflater.inflate(R.layout.presenceitem, parent,false);
+                convertView = layoutInflater.inflate(R.layout.presenceitem, parent, false);
 
                 PresenceMessage presenceMessage = ((PresenceMessage) items.get(position));
                 String actionToShow = "";
                 if (presenceMessage.action.equals(PresenceMessage.Action.enter)) {
-                    ((TextView) convertView.findViewById(R.id.action)).setTextColor(Color.rgb(255,255,255));
+                    ((TextView) convertView.findViewById(R.id.action)).setTextColor(Color.rgb(255, 255, 255));
                     convertView.findViewById(R.id.userInfo).setBackground(getResources().getDrawable(R.drawable.presencein));
                     actionToShow = " has entered the channel";
                 } else if (presenceMessage.action.equals(PresenceMessage.Action.leave)) {
-                    ((TextView) convertView.findViewById(R.id.action)).setTextColor(Color.rgb(11,11,11));
+                    ((TextView) convertView.findViewById(R.id.action)).setTextColor(Color.rgb(11, 11, 11));
                     convertView.findViewById(R.id.userInfo).setBackground(getResources().getDrawable(R.drawable.presenceout));
-                        actionToShow = " has left the channel";
-                    }
+                    actionToShow = " has left the channel";
+                }
                 ((TextView) convertView.findViewById(R.id.action)).setText(presenceMessage.clientId + actionToShow);
                 String dateString = formatter.format(new Date(presenceMessage.timestamp));
                 ((TextView) convertView.findViewById(R.id.presenceTimeStamp)).setText(dateString);
@@ -492,10 +466,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public View getView(int position, View convertView, ViewGroup parent) {
             TextView view = new TextView(getApplicationContext());
             LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            layoutParams.setMargins(10,0,10,5);
+            layoutParams.setMargins(10, 0, 10, 5);
             view.setLayoutParams(layoutParams);
-            view.setText("@"+items.get(position));
-            view.setTextColor(Color.rgb(0,0,0));
+            view.setText("@" + items.get(position));
+            view.setTextColor(Color.rgb(0, 0, 0));
             return view;
         }
     }
@@ -505,6 +479,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onPause();
         activityPaused = true;
         Connection.getInstance().disconnectAbly();
-        //clear the listeners
     }
 }
