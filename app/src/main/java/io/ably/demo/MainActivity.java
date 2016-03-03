@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -12,25 +11,17 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.BaseAdapter;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.JsonObject;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
 
 import io.ably.demo.connection.Connection;
 import io.ably.demo.connection.ConnectionCallback;
@@ -95,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void showChatScreen() {
         findViewById(R.id.loginLayout).setVisibility(View.GONE);
 
-        adapter = new ChatScreenAdapter();
+        adapter = new ChatScreenAdapter(this);
         ((ListView) findViewById(R.id.chatList)).setAdapter(adapter);
         try {
             Connection.getInstance().init(messageListener, presenceListener, chatInitializedCallback);
@@ -106,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private ConnectionCallback connectionCallback = new ConnectionCallback() {
         @Override
-        public void onConnectionCallback() throws AblyException {
+        public void onConnectionCallback() {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -116,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         @Override
-        public void onConnectionCallbackWithResult(BaseMessage[] result) throws AblyException {
+        public void onConnectionCallbackWithResult(BaseMessage[] result) {
 
         }
     };
@@ -187,18 +178,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         @Override
-        public void onConnectionCallbackWithResult(BaseMessage[] result) throws AblyException {
+        public void onConnectionCallbackWithResult(BaseMessage[] result){
             adapter.addItems(result);
-            /*runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Connection.getInstance().getPresenceHistory(getPresenceCallback);
-                    } catch (AblyException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });*/
         }
     };
 
@@ -209,8 +190,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         @Override
-        public void onConnectionCallbackWithResult(BaseMessage[] result) throws AblyException {
-            Log.d("s", "s");
+        public void onConnectionCallbackWithResult(BaseMessage[] result) {
             adapter.addItems(result);
         }
     };
@@ -238,7 +218,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.mentionBtn:
                 AlertDialog.Builder adBuilder = new AlertDialog.Builder(this);
-                adBuilder.setSingleChoiceItems(new PresenceAdapter(presentUsers), -1, new DialogInterface.OnClickListener() {
+                adBuilder.setSingleChoiceItems(new PresenceAdapter(this, presentUsers), -1, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(final DialogInterface dialog, final int which) {
                         runOnUiThread(new Runnable() {
@@ -252,10 +232,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
                 adBuilder.show();
                 break;
-        }
-
-        if (v.getId() == R.id.joinBtn) {
-
         }
     }
 
@@ -350,128 +326,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ((TextView) findViewById(R.id.presenceBadge)).setText(String.valueOf(presentUsers.size()));
             }
         });
-    }
-
-    public class itemsTimeComparator implements Comparator<BaseMessage> {
-        public int compare(BaseMessage left, BaseMessage right) {
-            int res = (int) (left.timestamp - right.timestamp);
-            return res;
-        }
-    }
-
-    public class ChatScreenAdapter extends BaseAdapter {
-        LayoutInflater layoutInflater = getLayoutInflater();
-        ArrayList<BaseMessage> items = new ArrayList<>();
-
-        public void addItems(BaseMessage[] newItems) {
-            for (BaseMessage item : newItems) {
-                items.add(item);
-            }
-            Collections.sort(items, new itemsTimeComparator());
-            notifyChange();
-        }
-
-        private void notifyChange() {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-
-                    notifyDataSetChanged();
-                }
-            });
-        }
-
-        @Override
-        public int getCount() {
-            return items.size();
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return items.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return 0;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-
-            SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
-
-            if (items.get(position) instanceof Message) {
-                convertView = layoutInflater.inflate(R.layout.chatitem, parent, false);
-
-                Message message = ((Message) items.get(position));
-                String userName = message.clientId;
-
-                if (userName == null) {
-                    ((TextView) convertView.findViewById(R.id.username)).setText(Connection.getInstance().userName);
-                    convertView.setBackground(getResources().getDrawable(R.drawable.outgoingmessage));
-                } else {
-                    ((TextView) convertView.findViewById(R.id.username)).setText(userName);
-                }
-                String dateString = formatter.format(new Date(message.timestamp));
-                ((TextView) convertView.findViewById(R.id.timestamp)).setText(dateString);
-                ((TextView) convertView.findViewById(R.id.message)).setText(message.data.toString());
-            } else {
-                convertView = layoutInflater.inflate(R.layout.presenceitem, parent, false);
-
-                PresenceMessage presenceMessage = ((PresenceMessage) items.get(position));
-                String actionToShow = "";
-                if (presenceMessage.action.equals(PresenceMessage.Action.enter)) {
-                    ((TextView) convertView.findViewById(R.id.action)).setTextColor(Color.rgb(255, 255, 255));
-                    convertView.findViewById(R.id.userInfo).setBackground(getResources().getDrawable(R.drawable.presencein));
-                    actionToShow = " has entered the channel";
-                } else if (presenceMessage.action.equals(PresenceMessage.Action.leave)) {
-                    ((TextView) convertView.findViewById(R.id.action)).setTextColor(Color.rgb(11, 11, 11));
-                    convertView.findViewById(R.id.userInfo).setBackground(getResources().getDrawable(R.drawable.presenceout));
-                    actionToShow = " has left the channel";
-                }
-                ((TextView) convertView.findViewById(R.id.action)).setText(presenceMessage.clientId + actionToShow);
-                String dateString = formatter.format(new Date(presenceMessage.timestamp));
-                ((TextView) convertView.findViewById(R.id.presenceTimeStamp)).setText(dateString);
-            }
-
-            return convertView;
-        }
-    }
-
-    public class PresenceAdapter extends BaseAdapter {
-
-        ArrayList<String> items;
-
-        public PresenceAdapter(ArrayList<String> items) {
-            this.items = items;
-        }
-
-        @Override
-        public int getCount() {
-            return items.size();
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return items.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return 0;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            TextView view = new TextView(getApplicationContext());
-            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            layoutParams.setMargins(10, 0, 10, 5);
-            view.setLayoutParams(layoutParams);
-            view.setText("@" + items.get(position));
-            view.setTextColor(Color.rgb(0, 0, 0));
-            return view;
-        }
     }
 
     @Override

@@ -201,7 +201,6 @@ public class Connection {
 
     public void disconnectAbly() {
         if (ablyRealtime != null) {
-
             ablyRealtime.close();
         }
     }
