@@ -22,12 +22,14 @@ import io.ably.lib.types.PresenceMessage;
 
 public class ChatScreenAdapter extends BaseAdapter {
     private MainActivity mainActivity;
+    private String ownClientId;
     LayoutInflater layoutInflater;
     ArrayList<BaseMessage> items = new ArrayList<>();
 
-    public ChatScreenAdapter(MainActivity mainActivity) {
+    public ChatScreenAdapter(MainActivity mainActivity, String ownClientId) {
         this.mainActivity = mainActivity;
         this.layoutInflater = mainActivity.getLayoutInflater();
+        this.ownClientId = ownClientId;
     }
 
     public void addItem(BaseMessage message) {
@@ -107,22 +109,20 @@ public class ChatScreenAdapter extends BaseAdapter {
 
     private void setupPresenceView(int position, View convertView) {
         PresenceMessage presenceMessage = (PresenceMessage) items.get(position);
-        String actionToShow = "";
+        TextView actionView = (TextView) convertView.findViewById(R.id.action);
         if (presenceMessage.action.equals(PresenceMessage.Action.enter)) {
-            ((TextView) convertView.findViewById(R.id.action)).setTextColor(Color.rgb(207, 207, 207));
-            convertView.findViewById(R.id.action).setBackground(mainActivity.getResources().getDrawable(R.drawable.presencein));
-            actionToShow = " has entered the channel";
+            actionView.setTextColor(Color.rgb(207, 207, 207));
+            actionView.setBackground(mainActivity.getResources().getDrawable(R.drawable.presencein));
         } else if (presenceMessage.action.equals(PresenceMessage.Action.leave)) {
-            ((TextView) convertView.findViewById(R.id.action)).setTextColor(Color.rgb(102, 102, 102));
-            convertView.findViewById(R.id.action).setBackground(mainActivity.getResources().getDrawable(R.drawable.presenceout));
-            actionToShow = " has left the channel";
+            actionView.setTextColor(Color.rgb(102, 102, 102));
+            actionView.setBackground(mainActivity.getResources().getDrawable(R.drawable.presenceout));
         }
 
         String actionText = this.createActionText(presenceMessage.clientId, presenceMessage.action, presenceMessage.timestamp);
         ((TextView) convertView.findViewById(R.id.action)).setText(actionText);
     }
 
-    private String createActionText(String handle, PresenceMessage.Action action, long timestamp) {
+    private String createActionText(String clientId, PresenceMessage.Action action, long timestamp) {
         String actionText = "";
         switch(action) {
             case enter:
@@ -135,6 +135,8 @@ public class ChatScreenAdapter extends BaseAdapter {
                 actionText = "";
                 break;
         }
+
+        String handle = clientId.equals(this.ownClientId) ? "You" : clientId;
         String relativeDateText = DateUtils.getRelativeTimeSpanString(mainActivity.getApplicationContext(), timestamp).toString();
         return String.format("%s %s the channel %s", handle, actionText, relativeDateText);
     }

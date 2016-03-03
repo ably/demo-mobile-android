@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private boolean typingFlag = false;
     private ArrayList<String> usersCurrentlyTyping = new ArrayList();
     private ArrayList<String> presentUsers = new ArrayList<>();
+    private String clientId;
 
     private Runnable isUserTypingRunnable = new Runnable() {
         @Override
@@ -94,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void showChatScreen() {
         findViewById(R.id.loginLayout).setVisibility(View.GONE);
 
-        adapter = new ChatScreenAdapter(this);
+        adapter = new ChatScreenAdapter(this, this.clientId);
         ((ListView) findViewById(R.id.chatList)).setAdapter(adapter);
         try {
             Connection.getInstance().init(messageListener, presenceListener, chatInitializedCallback);
@@ -214,11 +215,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
 
                 try {
-                    String clientId = ((TextView) findViewById(R.id.usernameET)).getText().toString();
+                    this.clientId = ((TextView) findViewById(R.id.usernameET)).getText().toString();
 
-                    Connection.getInstance().establishConnectionForID(clientId, connectionCallback);
+                    Connection.getInstance().establishConnectionForID(this.clientId, connectionCallback);
                 } catch (AblyException e) {
-                    Toast.makeText(this, R.string.unabletoconnet, Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, R.string.unable_to_connect, Toast.LENGTH_LONG).show();
                     Log.e("AblyConnection", e.getMessage());
                 }
                 break;
