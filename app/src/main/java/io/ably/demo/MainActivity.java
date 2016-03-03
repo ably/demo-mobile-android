@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -64,8 +65,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEND) {
                     try {
-                        String message = ((EditText) findViewById(R.id.textET)).getText().toString();
-                        Connection.getInstance().sendMessage(message);
+                        CharSequence messageText = ((EditText) findViewById(R.id.textET)).getText();
+
+                        if(TextUtils.isEmpty(messageText)) {
+                            return false;
+                        }
+
+                        Connection.getInstance().sendMessage(messageText.toString());
                         ((EditText) findViewById(R.id.textET)).setText("");
                     } catch (AblyException e) {
                         e.printStackTrace();

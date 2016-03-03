@@ -1,38 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingLeft="20dp"
-    android:paddingRight="20dp"
-    android:gravity="center_horizontal">
+
+    android:id="@+id/root">
 
     <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/presenceout"
-        android:gravity="center_vertical|center_horizontal"
-        android:id="@+id/userInfo"
-        android:paddingLeft="15dp"
-        android:paddingRight="15dp">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="has entered the channel"
             android:id="@+id/action"
-            android:layout_marginLeft="5dp"
             android:textColor="#010101"
-            android:gravity="center_vertical" />
+            android:gravity="center"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:paddingTop="0dp"
+            android:minHeight="25dp"/>
     </RelativeLayout>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="timestamp"
-        android:id="@+id/presenceTimeStamp"
-        android:textColor="#010101"
-        android:layout_toRightOf="@+id/userInfo"
-        android:layout_marginLeft="10dp"
-        android:gravity="center_vertical" />
-
 </RelativeLayout>
