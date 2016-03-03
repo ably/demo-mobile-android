@@ -27,10 +27,19 @@ public class ChatScreenAdapter extends BaseAdapter {
         this.layoutInflater = mainActivity.getLayoutInflater();
     }
 
-    public void addItems(BaseMessage[] newItems) {
+    public void addItem(BaseMessage message) {
+        this.items.add(message);
+        this.sortItemsAndNotifyChange();
+    }
+
+    public void addItems(Iterable<? extends BaseMessage> newItems) {
         for (BaseMessage item : newItems) {
             items.add(item);
         }
+        this.sortItemsAndNotifyChange();
+    }
+
+    private void sortItemsAndNotifyChange() {
         Collections.sort(items, new ItemsTimeComparator());
         notifyChange();
     }

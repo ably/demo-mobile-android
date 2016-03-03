@@ -5,6 +5,8 @@ import android.util.Log;
 
 import com.google.gson.JsonObject;
 
+import java.util.Arrays;
+
 import io.ably.lib.realtime.AblyRealtime;
 import io.ably.lib.realtime.Channel;
 import io.ably.lib.realtime.CompletionListener;
@@ -95,19 +97,22 @@ public class Connection {
         return sessionChannel.presence.get();
     }
 
-    public void getPresenceHistory(final ConnectionCallback callback) throws AblyException {
+    public void getPresenceHistory(final PresenceHistoryRetrievedCallback callback) throws AblyException {
         AsyncTask getPresenceHistoryTask = new AsyncTask() {
+
             @Override
             protected Object doInBackground(Object[] params) {
-                Param param1 = new Param("limit", HISTORY_LIMIT);
-                Param param2 = new Param("direction", HISTORY_DIRECTION);
-                Param[] presenceHistoryParams = {param1, param2};
                 try {
+                    Param limitParameter = new Param("limit", HISTORY_LIMIT);
+                    Param directionParameter = new Param("direction", HISTORY_DIRECTION);
+                    Param untilAttachParameter = new Param("untilAttach", "true");
+                    Param[] presenceHistoryParams = {limitParameter, directionParameter, untilAttachParameter};
                     PaginatedResult<PresenceMessage> messages = sessionChannel.presence.history(presenceHistoryParams);
-                    return messages.items();
+                    return Arrays.asList(messages.items());
                 } catch (AblyException e) {
                     e.printStackTrace();
                 }
+
                 return null;
             }
 
@@ -115,7 +120,7 @@ public class Connection {
             protected void onPostExecute(Object result) {
                 if (result != null) {
                     try {
-                        callback.onConnectionCallbackWithResult(((BaseMessage[]) result));
+                        callback.onPresenceHistoryRetrieved((Iterable<PresenceMessage>) result);
                     } catch (AblyException e) {
                         e.printStackTrace();
                     }
@@ -125,17 +130,18 @@ public class Connection {
         getPresenceHistoryTask.execute();
     }
 
-    public void getMessagesHistory(final ConnectionCallback callback) throws AblyException {
+    public void getMessagesHistory(final MessageHistoryRetrievedCallback callback) throws AblyException {
         AsyncTask getMessageHistory = new AsyncTask() {
             @Override
             protected Object doInBackground(Object[] params) {
-                Param param1 = new Param("limit", HISTORY_LIMIT);
-                Param param2 = new Param("direction", HISTORY_DIRECTION);
-                Param[] historyCallParams = {param1, param2};
-                final PaginatedResult<Message> messages;
                 try {
-                    messages = sessionChannel.history(historyCallParams);
-                    return messages.items();
+                    Param limitParameter = new Param("limit", HISTORY_LIMIT);
+                    Param directionParameter = new Param("direction", HISTORY_DIRECTION);
+                    Param untilAttachParameter = new Param("untilAttach", "true");
+                    Param[] historyCallParams = {limitParameter, directionParameter, untilAttachParameter};
+
+                    PaginatedResult<Message> messages = sessionChannel.history(historyCallParams);
+                    return Arrays.asList(messages.items());
                 } catch (AblyException e) {
                     e.printStackTrace();
                 }
@@ -146,7 +152,7 @@ public class Connection {
             protected void onPostExecute(Object result) {
                 if (result != null) {
                     try {
-                        callback.onConnectionCallbackWithResult(((BaseMessage[]) result));
+                        callback.onMessageHistoryRetrieved((Iterable<Message>) result);
                     } catch (AblyException e) {
                         e.printStackTrace();
                     }

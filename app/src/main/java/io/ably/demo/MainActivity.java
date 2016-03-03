@@ -25,6 +25,8 @@ import java.util.ArrayList;
 
 import io.ably.demo.connection.Connection;
 import io.ably.demo.connection.ConnectionCallback;
+import io.ably.demo.connection.MessageHistoryRetrievedCallback;
+import io.ably.demo.connection.PresenceHistoryRetrievedCallback;
 import io.ably.lib.realtime.Channel;
 import io.ably.lib.realtime.Presence;
 import io.ably.lib.types.AblyException;
@@ -156,7 +158,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     findViewById(R.id.chatLayout).setVisibility(View.VISIBLE);
                     ((EditText) findViewById(R.id.textET)).addTextChangedListener(isUserTypingTextWatcher);
                     try {
-                        Connection.getInstance().getMessagesHistory(getHistoryCallback);
+                        Connection.getInstance().getMessagesHistory(MainActivity.this.getMessageHistoryCallback);
+                        Connection.getInstance().getPresenceHistory(MainActivity.this.getPresenceHistoryCallback);
                     } catch (AblyException e) {
                         e.printStackTrace();
                     }
@@ -171,27 +174,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
 
-    private ConnectionCallback getHistoryCallback = new ConnectionCallback() {
+    private MessageHistoryRetrievedCallback getMessageHistoryCallback = new MessageHistoryRetrievedCallback() {
         @Override
-        public void onConnectionCallback() throws AblyException {
-
-        }
-
-        @Override
-        public void onConnectionCallbackWithResult(BaseMessage[] result){
-            adapter.addItems(result);
+        public void onMessageHistoryRetrieved(Iterable<Message> messages) throws AblyException {
+            adapter.addItems(messages);
         }
     };
 
-    private ConnectionCallback getPresenceCallback = new ConnectionCallback() {
+    private PresenceHistoryRetrievedCallback getPresenceHistoryCallback = new PresenceHistoryRetrievedCallback() {
         @Override
-        public void onConnectionCallback() throws AblyException {
-            Log.d("s", "s");
-        }
+        public void onPresenceHistoryRetrieved(Iterable<PresenceMessage> presenceMessages) throws AblyException {
+            ArrayList<PresenceMessage> messagesExceptUpdates = new ArrayList<PresenceMessage>();
+            for (PresenceMessage message : presenceMessages) {
+                if(message.action != PresenceMessage.Action.update) {
+                    messagesExceptUpdates.add(message);
+                }
+            }
 
-        @Override
-        public void onConnectionCallbackWithResult(BaseMessage[] result) {
-            adapter.addItems(result);
+            adapter.addItems(messagesExceptUpdates);
         }
     };
 
@@ -248,7 +248,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Channel.MessageListener messageListener = new Channel.MessageListener() {
         @Override
         public void onMessage(Message message) {
-            adapter.addItems(new Message[]{message});
+            adapter.addItem(message);
         }
     };
 
@@ -257,12 +257,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public void onPresenceMessage(final PresenceMessage presenceMessage) {
             switch (presenceMessage.action) {
                 case enter:
-                    adapter.addItems(new PresenceMessage[]{presenceMessage});
+                    adapter.addItem(presenceMessage);
                     presentUsers.add(presenceMessage.clientId);
                     updatePresentUsersBadge();
                     break;
                 case leave:
-                    adapter.addItems(new PresenceMessage[]{presenceMessage});
+                    adapter.addItem(presenceMessage);
                     presentUsers.remove(presenceMessage.clientId);
                     updatePresentUsersBadge();
                     break;
