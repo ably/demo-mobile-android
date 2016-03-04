@@ -105,7 +105,7 @@ public class Connection {
                 try {
                     Param limitParameter = new Param("limit", HISTORY_LIMIT);
                     Param directionParameter = new Param("direction", HISTORY_DIRECTION);
-                    Param untilAttachParameter = new Param("untilAttach", "true");
+                    Param untilAttachParameter = new Param("untilAttach", "false");
                     Param[] presenceHistoryParams = {limitParameter, directionParameter, untilAttachParameter};
                     PaginatedResult<PresenceMessage> messages = sessionChannel.presence.history(presenceHistoryParams);
                     return Arrays.asList(messages.items());
@@ -137,7 +137,7 @@ public class Connection {
                 try {
                     Param limitParameter = new Param("limit", HISTORY_LIMIT);
                     Param directionParameter = new Param("direction", HISTORY_DIRECTION);
-                    Param untilAttachParameter = new Param("untilAttach", "true");
+                    Param untilAttachParameter = new Param("untilAttach", "false");
                     Param[] historyCallParams = {limitParameter, directionParameter, untilAttachParameter};
 
                     PaginatedResult<Message> messages = sessionChannel.history(historyCallParams);

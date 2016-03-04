@@ -22,6 +22,7 @@ android {
 
 dependencies {
     compile 'com.android.support:appcompat-v7:23.0.0'
+    compile 'com.android.support:percent:23.1.0'
     //compile files('libs/ably.jar')
     compile files('libs/lib-full-0.8.1.jar')
 }

@@ -8,14 +8,11 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import org.java_websocket.util.Charsetfunctions;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 
-import io.ably.demo.connection.Connection;
 import io.ably.lib.types.BaseMessage;
 import io.ably.lib.types.Message;
 import io.ably.lib.types.PresenceMessage;
@@ -53,7 +50,6 @@ public class ChatScreenAdapter extends BaseAdapter {
         mainActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-
                 notifyDataSetChanged();
             }
         });
@@ -76,40 +72,45 @@ public class ChatScreenAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        if (this.items.get(position) instanceof Message) {
+            Message message = (Message) this.items.get(position);
+            if(!this.ownClientId.equals(this.items.get(position).clientId)) {
+                convertView = this.layoutInflater.inflate(R.layout.chat_message_incoming, parent, false);
+                this.setupIncomingMessageView(message, convertView);
+            }
+            else {
+                convertView = this.layoutInflater.inflate(R.layout.chat_message_outgoing, parent, false);
+                this.setupOutgoingMessageView(message, convertView);
+            }
 
-        SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
-
-        if (items.get(position) instanceof Message) {
-            convertView = layoutInflater.inflate(R.layout.chatitem, parent, false);
-
-            setupMessageView(position, convertView, formatter);
         } else {
-            convertView = layoutInflater.inflate(R.layout.presenceitem, parent, false);
+            convertView = this.layoutInflater.inflate(R.layout.presence_message, parent, false);
 
-            setupPresenceView(position, convertView);
+            this.setupPresenceView(position, convertView);
         }
 
         return convertView;
     }
 
-    private void setupMessageView(int position, View convertView, SimpleDateFormat formatter) {
-        Message message = ((Message) items.get(position));
-        String userName = message.clientId;
+    private void setupIncomingMessageView(Message message, View convertView) {
+        String relativeDateText = DateUtils.getRelativeTimeSpanString(mainActivity.getApplicationContext(), message.timestamp).toString();
 
-        if (userName == null) {
-            ((TextView) convertView.findViewById(R.id.username)).setText(Connection.getInstance().userName);
-            convertView.setBackground(mainActivity.getResources().getDrawable(R.drawable.outgoingmessage));
-        } else {
-            ((TextView) convertView.findViewById(R.id.username)).setText(userName);
-        }
-        String dateString = formatter.format(new Date(message.timestamp));
-        ((TextView) convertView.findViewById(R.id.timestamp)).setText(dateString);
+        ((TextView) convertView.findViewById(R.id.username)).setText(message.clientId);
+        ((TextView) convertView.findViewById(R.id.timestamp)).setText(relativeDateText);
+        ((TextView) convertView.findViewById(R.id.message)).setText(message.data.toString());
+    }
+
+    private void setupOutgoingMessageView(Message message, View convertView) {
+        String relativeDateText = DateUtils.getRelativeTimeSpanString(mainActivity.getApplicationContext(), message.timestamp).toString();
+
+        ((TextView) convertView.findViewById(R.id.timestamp)).setText(relativeDateText);
         ((TextView) convertView.findViewById(R.id.message)).setText(message.data.toString());
     }
 
     private void setupPresenceView(int position, View convertView) {
         PresenceMessage presenceMessage = (PresenceMessage) items.get(position);
         TextView actionView = (TextView) convertView.findViewById(R.id.action);
+
         if (presenceMessage.action.equals(PresenceMessage.Action.enter)) {
             actionView.setTextColor(Color.rgb(207, 207, 207));
             actionView.setBackground(mainActivity.getResources().getDrawable(R.drawable.presencein));
@@ -119,7 +120,7 @@ public class ChatScreenAdapter extends BaseAdapter {
         }
 
         String actionText = this.createActionText(presenceMessage.clientId, presenceMessage.action, presenceMessage.timestamp);
-        ((TextView) convertView.findViewById(R.id.action)).setText(actionText);
+        actionView.setText(actionText);
     }
 
     private String createActionText(String clientId, PresenceMessage.Action action, long timestamp) {

@@ -78,7 +78,8 @@
             android:id="@+id/chatList" android:transcriptMode="alwaysScroll" android:stackFromBottom="true"
             android:background="@android:color/transparent"
             android:divider="@null"
-            android:dividerHeight="2dp"/>
+            android:dividerHeight="5dp"
+            android:paddingBottom="5dp"/>
 
         <TextView
             android:layout_width="wrap_content"
