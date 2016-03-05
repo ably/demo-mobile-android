@@ -86,20 +86,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                             messageToShow.append(usersCurrentlyTyping.get(0) + " is typing");
                                             break;
                                         case 2:
-                                            messageToShow.append(usersCurrentlyTyping.get(0) + " & ");
+                                            messageToShow.append(usersCurrentlyTyping.get(0) + " and ");
                                             messageToShow.append(usersCurrentlyTyping.get(1) + " are typing");
                                             break;
                                         default:
                                             if (usersCurrentlyTyping.size() > 4) {
                                                 messageToShow.append(usersCurrentlyTyping.get(0) + ", ");
                                                 messageToShow.append(usersCurrentlyTyping.get(1) + ", ");
-                                                messageToShow.append(usersCurrentlyTyping.get(2) + " & other are typing");
+                                                messageToShow.append(usersCurrentlyTyping.get(2) + " and other are typing");
                                             } else {
                                                 int i;
                                                 for (i = 0; i < usersCurrentlyTyping.size() - 1; ++i) {
                                                     messageToShow.append(usersCurrentlyTyping.get(i) + ", ");
                                                 }
-                                                messageToShow.append(" & " + usersCurrentlyTyping.get(i) + " are typing");
+                                                messageToShow.append(" and " + usersCurrentlyTyping.get(i) + " are typing");
                                             }
                                     }
 
@@ -295,7 +295,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                ((EditText) findViewById(R.id.textET)).append(presentUsers.get(which));
+                                String textToAppend = String.format("@%s ", presentUsers.get(which));
+                                ((EditText) findViewById(R.id.textET)).append(textToAppend);
                                 dialog.cancel();
                             }
                         });
