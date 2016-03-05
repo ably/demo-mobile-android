@@ -26,7 +26,7 @@
             android:layout_alignRight="@+id/imageView"
             android:layout_below="@+id/imageView"
             android:layout_marginTop="5dp"
-            android:background="@drawable/textshape"
+            android:background="@drawable/text_shape"
             android:gravity="center_horizontal"
             android:padding="3dp"
             android:text="Realtime chat demo"

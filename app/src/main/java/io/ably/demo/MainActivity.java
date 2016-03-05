@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private boolean activityPaused = false;
     private Handler isUserTypingHandler = new Handler();
     private boolean typingFlag = false;
-    private ArrayList<String> usersCurrentlyTyping = new ArrayList();
+    private ArrayList<String> usersCurrentlyTyping = new ArrayList<>();
     private ArrayList<String> presentUsers = new ArrayList<>();
     Presence.PresenceListener presenceListener = new Presence.PresenceListener() {
         @Override
@@ -289,7 +289,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.mentionBtn:
                 AlertDialog.Builder adBuilder = new AlertDialog.Builder(this);
-                adBuilder.setSingleChoiceItems(new PresenceAdapter(this, presentUsers), -1, new DialogInterface.OnClickListener() {
+                adBuilder.setSingleChoiceItems(new PresenceAdapter(this, presentUsers, this.clientId), -1, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(final DialogInterface dialog, final int which) {
                         runOnUiThread(new Runnable() {
@@ -302,6 +302,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         });
                     }
                 });
+                adBuilder.setTitle("Handles");
+                adBuilder.setIcon(R.drawable.user_list_title_icon);
                 adBuilder.show();
                 break;
         }

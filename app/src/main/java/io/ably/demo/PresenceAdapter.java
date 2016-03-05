@@ -12,11 +12,13 @@ import java.util.ArrayList;
 public class PresenceAdapter extends BaseAdapter {
 
     private final MainActivity mainActivity;
+    private final String ownHandle;
     ArrayList<String> items;
 
-    public PresenceAdapter(MainActivity mainActivity, ArrayList<String> items) {
+    public PresenceAdapter(MainActivity mainActivity, ArrayList<String> items, String ownHandle) {
         this.mainActivity = mainActivity;
         this.items = items;
+        this.ownHandle = ownHandle;
     }
 
     @Override
@@ -36,12 +38,19 @@ public class PresenceAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        TextView view = new TextView(this.mainActivity.getApplicationContext());
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        layoutParams.setMargins(10, 0, 10, 5);
-        view.setLayoutParams(layoutParams);
-        view.setText(String.format("@%s", this.items.get(position)));
-        view.setTextColor(Color.rgb(0, 0, 0));
-        return view;
+        if (convertView == null) {
+            convertView = mainActivity.getLayoutInflater().inflate(R.layout.user_list_item, parent, false);
+        }
+
+        TextView handleView = (TextView) convertView.findViewById(R.id.handle);
+        String handle = this.items.get(position);
+
+        if (handle.equals(this.ownHandle)) {
+            handleView.setText(String.format("@%s (me)", handle));
+        } else {
+            handleView.setText(String.format("@%s", handle));
+        }
+
+        return convertView;
     }
 }
