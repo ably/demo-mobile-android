@@ -6,4 +6,3 @@ import io.ably.lib.types.PresenceMessage;
 public interface PresenceHistoryRetrievedCallback {
     void onPresenceHistoryRetrieved(Iterable<PresenceMessage> presenceMessages) throws AblyException;
 }
-

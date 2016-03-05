@@ -13,7 +13,6 @@ import io.ably.lib.realtime.CompletionListener;
 import io.ably.lib.realtime.ConnectionStateListener;
 import io.ably.lib.realtime.Presence;
 import io.ably.lib.types.AblyException;
-import io.ably.lib.types.BaseMessage;
 import io.ably.lib.types.ClientOptions;
 import io.ably.lib.types.ErrorInfo;
 import io.ably.lib.types.Message;
@@ -24,25 +23,22 @@ import io.ably.lib.types.PresenceMessage;
 
 public class Connection {
 
+    private static Connection instance = new Connection();
     private final String ABLY_CHANNEL_NAME = "mobile:chat";
     private final String HISTORY_DIRECTION = "backwards";
     private final String HISTORY_LIMIT = "50";
+    public String userName;
     private Channel sessionChannel;
     private AblyRealtime ablyRealtime;
+    private Channel.MessageListener messageListener;
+    private Presence.PresenceListener presenceListener;
 
     private Connection() {
     }
 
-    private Channel.MessageListener messageListener;
-    private Presence.PresenceListener presenceListener;
-
-    private static Connection instance = new Connection();
-
     public static Connection getInstance() {
         return instance;
     }
-
-    public String userName;
 
     public void establishConnectionForID(String userName, final ConnectionCallback callback) throws AblyException {
         this.userName = userName;

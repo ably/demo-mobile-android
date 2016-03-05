@@ -8,20 +8,18 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 
 import io.ably.lib.types.BaseMessage;
 import io.ably.lib.types.Message;
 import io.ably.lib.types.PresenceMessage;
 
 public class ChatScreenAdapter extends BaseAdapter {
-    private MainActivity mainActivity;
-    private String ownClientId;
     LayoutInflater layoutInflater;
     ArrayList<BaseMessage> items = new ArrayList<>();
+    private MainActivity mainActivity;
+    private String ownClientId;
 
     public ChatScreenAdapter(MainActivity mainActivity, String ownClientId) {
         this.mainActivity = mainActivity;
@@ -74,11 +72,10 @@ public class ChatScreenAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         if (this.items.get(position) instanceof Message) {
             Message message = (Message) this.items.get(position);
-            if(!this.ownClientId.equals(this.items.get(position).clientId)) {
+            if (!this.ownClientId.equals(this.items.get(position).clientId)) {
                 convertView = this.layoutInflater.inflate(R.layout.chat_message_incoming, parent, false);
                 this.setupIncomingMessageView(message, convertView);
-            }
-            else {
+            } else {
                 convertView = this.layoutInflater.inflate(R.layout.chat_message_outgoing, parent, false);
                 this.setupOutgoingMessageView(message, convertView);
             }
@@ -125,7 +122,7 @@ public class ChatScreenAdapter extends BaseAdapter {
 
     private String createActionText(String clientId, PresenceMessage.Action action, long timestamp) {
         String actionText = "";
-        switch(action) {
+        switch (action) {
             case enter:
                 actionText = "entered";
                 break;

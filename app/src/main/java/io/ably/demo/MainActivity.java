@@ -38,227 +38,17 @@ import io.ably.lib.types.PresenceMessage;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     ChatScreenAdapter adapter;
-    private boolean activityPaused = false;
-    private Handler isUserTypingHandler = new Handler();
-    private boolean typingFlag = false;
-    private ArrayList<String> usersCurrentlyTyping = new ArrayList();
-    private ArrayList<String> presentUsers = new ArrayList<>();
-    private String clientId;
-
-    private Runnable isUserTypingRunnable = new Runnable() {
-        @Override
-        public void run() {
-            //Toast.makeText(getApplicationContext(), "User has stopped writing", Toast.LENGTH_SHORT).show();
-            Connection.getInstance().userHasEndedTyping();
-            typingFlag = false;
-        }
-    };
-
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        findViewById(R.id.joinBtn).setOnClickListener(this);
-        findViewById(R.id.mentionBtn).setOnClickListener(this);
-        ((TextView) findViewById(R.id.textET)).setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_SEND) {
-                    try {
-                        CharSequence messageText = ((EditText) findViewById(R.id.textET)).getText();
-
-                        if(TextUtils.isEmpty(messageText)) {
-                            return false;
-                        }
-
-                        Connection.getInstance().sendMessage(messageText.toString());
-                        ((EditText) findViewById(R.id.textET)).setText("");
-                    } catch (AblyException e) {
-                        e.printStackTrace();
-                    }
-                }
-                return false;
-            }
-        });
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (activityPaused) {
-            Connection.getInstance().reconnectAbly();
-            activityPaused = false;
-        }
-    }
-
-    private void showChatScreen() {
-        findViewById(R.id.loginLayout).setVisibility(View.GONE);
-
-        adapter = new ChatScreenAdapter(this, this.clientId);
-        ((ListView) findViewById(R.id.chatList)).setAdapter(adapter);
-        try {
-            Connection.getInstance().init(messageListener, presenceListener, chatInitializedCallback);
-        } catch (AblyException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private ConnectionCallback connectionCallback = new ConnectionCallback() {
-        @Override
-        public void onConnectionCallback() {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    showChatScreen();
-                }
-            });
-        }
-
-        @Override
-        public void onConnectionCallbackWithResult(BaseMessage[] result) {
-
-        }
-    };
-
-
-    private TextWatcher isUserTypingTextWatcher = new TextWatcher() {
-        @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-        }
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-        }
-
-        @Override
-        public void afterTextChanged(Editable s) {
-            if (!typingFlag) {
-                Connection.getInstance().userHasStartedTyping();
-                typingFlag = true;
-            }
-            isUserTypingHandler.removeCallbacks(isUserTypingRunnable);
-            isUserTypingHandler.postDelayed(isUserTypingRunnable, 5000);
-        }
-    };
-
-    private void addCurrentMembers() {
-        for (PresenceMessage presenceMessage : Connection.getInstance().getPresentUsers()) {
-            if (!presenceMessage.clientId.equals(Connection.getInstance().userName)) {
-                presentUsers.add(presenceMessage.clientId);
-            }
-        }
-        updatePresentUsersBadge();
-    }
-
-    private ConnectionCallback chatInitializedCallback = new ConnectionCallback() {
-        @Override
-        public void onConnectionCallback() throws AblyException {
-            addCurrentMembers();
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-
-                    findViewById(R.id.progressBar).setVisibility(View.GONE);
-                    findViewById(R.id.chatLayout).setVisibility(View.VISIBLE);
-                    ((EditText) findViewById(R.id.textET)).addTextChangedListener(isUserTypingTextWatcher);
-                    try {
-                        Connection.getInstance().getMessagesHistory(MainActivity.this.getMessageHistoryCallback);
-                        Connection.getInstance().getPresenceHistory(MainActivity.this.getPresenceHistoryCallback);
-                    } catch (AblyException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-
-        }
-
-        @Override
-        public void onConnectionCallbackWithResult(BaseMessage[] result) throws AblyException {
-
-        }
-    };
-
-    private MessageHistoryRetrievedCallback getMessageHistoryCallback = new MessageHistoryRetrievedCallback() {
-        @Override
-        public void onMessageHistoryRetrieved(Iterable<Message> messages) throws AblyException {
-            adapter.addItems(messages);
-        }
-    };
-
-    private PresenceHistoryRetrievedCallback getPresenceHistoryCallback = new PresenceHistoryRetrievedCallback() {
-        @Override
-        public void onPresenceHistoryRetrieved(Iterable<PresenceMessage> presenceMessages) throws AblyException {
-            ArrayList<PresenceMessage> messagesExceptUpdates = new ArrayList<PresenceMessage>();
-            for (PresenceMessage message : presenceMessages) {
-                if(message.action != PresenceMessage.Action.update) {
-                    messagesExceptUpdates.add(message);
-                }
-            }
-
-            adapter.addItems(messagesExceptUpdates);
-        }
-    };
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.joinBtn:
-                View view = getCurrentFocus();
-                if (view != null) {
-                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                }
-                findViewById(R.id.loginLayout).setVisibility(View.GONE);
-                findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-
-                try {
-                    this.clientId = ((TextView) findViewById(R.id.usernameET)).getText().toString();
-
-                    Connection.getInstance().establishConnectionForID(this.clientId, connectionCallback);
-                } catch (AblyException e) {
-                    Toast.makeText(this, R.string.unable_to_connect, Toast.LENGTH_LONG).show();
-                    Log.e("AblyConnection", e.getMessage());
-                }
-                break;
-            case R.id.mentionBtn:
-                AlertDialog.Builder adBuilder = new AlertDialog.Builder(this);
-                adBuilder.setSingleChoiceItems(new PresenceAdapter(this, presentUsers), -1, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(final DialogInterface dialog, final int which) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                ((EditText) findViewById(R.id.textET)).append(presentUsers.get(which));
-                                dialog.cancel();
-                            }
-                        });
-                    }
-                });
-                adBuilder.show();
-                break;
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, final int resultCode, Intent data) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                ((EditText) findViewById(R.id.textET)).setText(presentUsers.get(resultCode));
-            }
-        });
-    }
-
     Channel.MessageListener messageListener = new Channel.MessageListener() {
         @Override
         public void onMessage(Message message) {
             adapter.addItem(message);
         }
     };
-
+    private boolean activityPaused = false;
+    private Handler isUserTypingHandler = new Handler();
+    private boolean typingFlag = false;
+    private ArrayList<String> usersCurrentlyTyping = new ArrayList();
+    private ArrayList<String> presentUsers = new ArrayList<>();
     Presence.PresenceListener presenceListener = new Presence.PresenceListener() {
         @Override
         public void onPresenceMessage(final PresenceMessage presenceMessage) {
@@ -325,6 +115,206 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
     };
+    private String clientId;
+    private Runnable isUserTypingRunnable = new Runnable() {
+        @Override
+        public void run() {
+            //Toast.makeText(getApplicationContext(), "User has stopped writing", Toast.LENGTH_SHORT).show();
+            Connection.getInstance().userHasEndedTyping();
+            typingFlag = false;
+        }
+    };
+    private TextWatcher isUserTypingTextWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+            if (!typingFlag) {
+                Connection.getInstance().userHasStartedTyping();
+                typingFlag = true;
+            }
+            isUserTypingHandler.removeCallbacks(isUserTypingRunnable);
+            isUserTypingHandler.postDelayed(isUserTypingRunnable, 5000);
+        }
+    };
+    private MessageHistoryRetrievedCallback getMessageHistoryCallback = new MessageHistoryRetrievedCallback() {
+        @Override
+        public void onMessageHistoryRetrieved(Iterable<Message> messages) throws AblyException {
+            adapter.addItems(messages);
+        }
+    };
+    private PresenceHistoryRetrievedCallback getPresenceHistoryCallback = new PresenceHistoryRetrievedCallback() {
+        @Override
+        public void onPresenceHistoryRetrieved(Iterable<PresenceMessage> presenceMessages) throws AblyException {
+            ArrayList<PresenceMessage> messagesExceptUpdates = new ArrayList<PresenceMessage>();
+            for (PresenceMessage message : presenceMessages) {
+                if (message.action != PresenceMessage.Action.update) {
+                    messagesExceptUpdates.add(message);
+                }
+            }
+
+            adapter.addItems(messagesExceptUpdates);
+        }
+    };
+    private ConnectionCallback chatInitializedCallback = new ConnectionCallback() {
+        @Override
+        public void onConnectionCallback() throws AblyException {
+            addCurrentMembers();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    findViewById(R.id.progressBar).setVisibility(View.GONE);
+                    findViewById(R.id.chatLayout).setVisibility(View.VISIBLE);
+                    ((EditText) findViewById(R.id.textET)).addTextChangedListener(isUserTypingTextWatcher);
+                    try {
+                        Connection.getInstance().getMessagesHistory(MainActivity.this.getMessageHistoryCallback);
+                        Connection.getInstance().getPresenceHistory(MainActivity.this.getPresenceHistoryCallback);
+                    } catch (AblyException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+        }
+
+        @Override
+        public void onConnectionCallbackWithResult(BaseMessage[] result) throws AblyException {
+
+        }
+    };
+    private ConnectionCallback connectionCallback = new ConnectionCallback() {
+        @Override
+        public void onConnectionCallback() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    showChatScreen();
+                }
+            });
+        }
+
+        @Override
+        public void onConnectionCallbackWithResult(BaseMessage[] result) {
+
+        }
+    };
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        findViewById(R.id.joinBtn).setOnClickListener(this);
+        findViewById(R.id.mentionBtn).setOnClickListener(this);
+        ((TextView) findViewById(R.id.textET)).setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEND) {
+                    try {
+                        CharSequence messageText = ((EditText) findViewById(R.id.textET)).getText();
+
+                        if (TextUtils.isEmpty(messageText)) {
+                            return false;
+                        }
+
+                        Connection.getInstance().sendMessage(messageText.toString());
+                        ((EditText) findViewById(R.id.textET)).setText("");
+                    } catch (AblyException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return false;
+            }
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (activityPaused) {
+            Connection.getInstance().reconnectAbly();
+            activityPaused = false;
+        }
+    }
+
+    private void showChatScreen() {
+        findViewById(R.id.loginLayout).setVisibility(View.GONE);
+
+        adapter = new ChatScreenAdapter(this, this.clientId);
+        ((ListView) findViewById(R.id.chatList)).setAdapter(adapter);
+        try {
+            Connection.getInstance().init(messageListener, presenceListener, chatInitializedCallback);
+        } catch (AblyException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addCurrentMembers() {
+        for (PresenceMessage presenceMessage : Connection.getInstance().getPresentUsers()) {
+            if (!presenceMessage.clientId.equals(Connection.getInstance().userName)) {
+                presentUsers.add(presenceMessage.clientId);
+            }
+        }
+        updatePresentUsersBadge();
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.joinBtn:
+                View view = getCurrentFocus();
+                if (view != null) {
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                }
+                findViewById(R.id.loginLayout).setVisibility(View.GONE);
+                findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+
+                try {
+                    this.clientId = ((TextView) findViewById(R.id.usernameET)).getText().toString();
+
+                    Connection.getInstance().establishConnectionForID(this.clientId, connectionCallback);
+                } catch (AblyException e) {
+                    Toast.makeText(this, R.string.unable_to_connect, Toast.LENGTH_LONG).show();
+                    Log.e("AblyConnection", e.getMessage());
+                }
+                break;
+            case R.id.mentionBtn:
+                AlertDialog.Builder adBuilder = new AlertDialog.Builder(this);
+                adBuilder.setSingleChoiceItems(new PresenceAdapter(this, presentUsers), -1, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(final DialogInterface dialog, final int which) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                ((EditText) findViewById(R.id.textET)).append(presentUsers.get(which));
+                                dialog.cancel();
+                            }
+                        });
+                    }
+                });
+                adBuilder.show();
+                break;
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, final int resultCode, Intent data) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ((EditText) findViewById(R.id.textET)).setText(presentUsers.get(resultCode));
+            }
+        });
+    }
 
     private void updatePresentUsersBadge() {
         runOnUiThread(new Runnable() {

@@ -10,8 +10,8 @@
         android:layout_height="wrap_content"
         android:background="@drawable/chat_message_outgoing_bubble"
         android:orientation="vertical"
-        app:layout_widthPercent="70%"
-        app:layout_marginLeftPercent="30%">
+        app:layout_marginLeftPercent="30%"
+        app:layout_widthPercent="70%">
 
         <TextView
             android:id="@+id/timestamp"
@@ -20,7 +20,7 @@
             android:layout_gravity="right"
             android:gravity="right"
             android:text="12:34:52"
-            android:textColor="#77ffffff"/>
+            android:textColor="#77ffffff" />
 
         <TextView
             android:id="@+id/message"
@@ -28,6 +28,6 @@
             android:layout_height="wrap_content"
             android:gravity="left"
             android:text="This is a long long text message"
-            android:textColor="#ffffffff"/>
+            android:textColor="#ffffffff" />
     </LinearLayout>
 </android.support.percent.PercentRelativeLayout>

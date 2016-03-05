@@ -1,119 +1,130 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_height="match_parent"
     android:layout_width="match_parent"
+    android:layout_height="match_parent"
     tools:context=".MainActivity">
+
     <RelativeLayout
-         android:layout_width="match_parent"
-        android:layout_height="match_parent"
         android:id="@+id/loginLayout"
-        android:visibility="visible"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/radial_background_shape"
         android:gravity="center_vertical|center_horizontal"
-        android:background="@drawable/radial_background_shape">
+        android:visibility="visible">
+
         <ImageView
+            android:id="@+id/imageView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/imageView"
             android:src="@drawable/ablylogotilerectangle" />
 
         <TextView
+            android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Realtime chat demo"
-            android:id="@+id/textView"
-            android:background="@drawable/textshape"
             android:layout_alignLeft="@+id/imageView"
             android:layout_alignRight="@+id/imageView"
             android:layout_below="@+id/imageView"
             android:layout_marginTop="5dp"
-            android:padding="3dp"
+            android:background="@drawable/textshape"
             android:gravity="center_horizontal"
+            android:padding="3dp"
+            android:text="Realtime chat demo"
             android:textColor="#FFFFFF"
             android:textStyle="bold" />
 
         <EditText
+            android:id="@+id/usernameET"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
-            android:id="@+id/usernameET"
-            android:layout_below="@+id/textView"
+            android:layout_alignLeft="@+id/imageView"
             android:layout_alignParentEnd="false"
             android:layout_alignParentStart="false"
-            android:layout_alignLeft="@+id/imageView"
             android:layout_alignRight="@+id/imageView"
-            android:textColor="#000000"
-            android:textColorHint="#22000000"
-            android:hint="\@handle"
-            android:background="@drawable/usernameshape"
+            android:layout_below="@+id/textView"
             android:layout_marginTop="70dp"
+            android:background="@drawable/usernameshape"
+            android:hint="\@handle"
             android:padding="8dp"
-            android:singleLine="true" />
+            android:singleLine="true"
+            android:textColor="#000000"
+            android:textColorHint="#22000000" />
 
         <Button
+            android:id="@+id/joinBtn"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
-            android:text="Join"
-            android:id="@+id/joinBtn"
             android:layout_alignLeft="@+id/imageView"
             android:layout_alignRight="@+id/imageView"
             android:layout_below="@+id/usernameET"
-            android:textColor="#FFFFFF"
+            android:layout_marginTop="3dp"
             android:background="@drawable/joinbuttonshape"
-            android:layout_marginTop="3dp" />
+            android:text="Join"
+            android:textColor="#FFFFFF" />
 
     </RelativeLayout>
+
     <ProgressBar
-        android:layout_gravity="center"
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:visibility="gone" />
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="vertical" android:layout_width="match_parent"
-        android:layout_height="fill_parent" android:id="@+id/chatLayout" android:visibility="gone"
-        android:background="@drawable/radial_background_shape">
 
-        <ListView android:layout_weight="1"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/chatLayout"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:background="@drawable/radial_background_shape"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ListView
+            android:id="@+id/chatList"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
-            android:id="@+id/chatList" android:transcriptMode="alwaysScroll" android:stackFromBottom="true"
+            android:layout_weight="1"
             android:background="@android:color/transparent"
             android:divider="@null"
             android:dividerHeight="5dp"
-            android:paddingBottom="5dp"/>
+            android:paddingBottom="5dp"
+            android:stackFromBottom="true"
+            android:transcriptMode="alwaysScroll" />
 
         <TextView
+            android:id="@+id/isTyping"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Medium Text"
-            android:id="@+id/isTyping"
-            android:visibility="gone" android:textColor="#22000000" />
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="#22000000"
+            android:visibility="gone" />
 
         <LinearLayout
-            android:orientation="horizontal"
+            android:id="@+id/controllsLL"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:id="@+id/controllsLL"
-            android:visibility="visible"
             android:background="#FFB600"
             android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingBottom="15dp"
             android:paddingTop="15dp"
-            android:paddingBottom="15dp">
+            android:visibility="visible">
 
             <EditText
-                android:layout_weight="1"
+                android:id="@+id/textET"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/textET"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
+                android:layout_weight="1"
                 android:background="@drawable/usernameshape"
                 android:hint="your message"
-                android:textColorHint="#AAAAAA"
+                android:imeOptions="actionSend"
+                android:inputType="text"
                 android:paddingLeft="5dp"
                 android:singleLine="true"
-                android:inputType="text"
-                android:imeOptions="actionSend"/>
+                android:textColorHint="#AAAAAA" />
 
         </LinearLayout>
 
@@ -121,24 +132,29 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="-73dp">
+
             <ImageButton
+                android:id="@+id/mentionBtn"
                 android:layout_width="50dp"
                 android:layout_height="25dp"
-                android:text="Mntn" android:src="@drawable/icperson"
-                android:id="@+id/mentionBtn" android:visibility="visible" android:scaleType="fitCenter"
                 android:layout_alignParentEnd="true"
-                android:paddingLeft="30dp"
                 android:background="@drawable/mentionshape"
-                android:paddingRight="8dp" />
+                android:paddingLeft="30dp"
+                android:paddingRight="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/icperson"
+                android:text="Mntn"
+                android:visibility="visible" />
+
             <TextView
-                android:text="1"
+                android:id="@+id/presenceBadge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="false"
                 android:layout_centerVertical="true"
-                android:id="@+id/presenceBadge"
-                android:layout_toLeftOf="@+id/mentionBtn"
                 android:layout_marginRight="-20dp"
+                android:layout_toLeftOf="@+id/mentionBtn"
+                android:text="1"
                 android:textColor="#FFFFFF" />
         </RelativeLayout>
 
