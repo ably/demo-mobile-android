@@ -110,10 +110,10 @@ public class ChatScreenAdapter extends BaseAdapter {
 
         if (presenceMessage.action.equals(PresenceMessage.Action.enter)) {
             actionView.setTextColor(Color.rgb(207, 207, 207));
-            actionView.setBackground(mainActivity.getResources().getDrawable(R.drawable.presencein));
+            actionView.setBackground(mainActivity.getResources().getDrawable(R.drawable.presence_in));
         } else if (presenceMessage.action.equals(PresenceMessage.Action.leave)) {
             actionView.setTextColor(Color.rgb(102, 102, 102));
-            actionView.setBackground(mainActivity.getResources().getDrawable(R.drawable.presenceout));
+            actionView.setBackground(mainActivity.getResources().getDrawable(R.drawable.presence_out));
         }
 
         String actionText = this.createActionText(presenceMessage.clientId, presenceMessage.action, presenceMessage.timestamp);
