@@ -68,10 +68,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                if (!(presenceMessage.data instanceof JsonObject)) {
-                                    return;
-                                }
-
                                 boolean isUserTyping = ((JsonObject) presenceMessage.data).get("isTyping").getAsBoolean();
                                 if (isUserTyping) {
                                     usersCurrentlyTyping.add(presenceMessage.clientId);
@@ -174,13 +170,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     findViewById(R.id.progressBar).setVisibility(View.GONE);
                     findViewById(R.id.chatLayout).setVisibility(View.VISIBLE);
+                    ((EditText) findViewById(R.id.textET)).removeTextChangedListener(isUserTypingTextWatcher);
                     ((EditText) findViewById(R.id.textET)).addTextChangedListener(isUserTypingTextWatcher);
-                    try {
-                        Connection.getInstance().getMessagesHistory(MainActivity.this.getMessageHistoryCallback);
-                        Connection.getInstance().getPresenceHistory(MainActivity.this.getPresenceHistoryCallback);
-                    } catch (AblyException e) {
-                        e.printStackTrace();
-                    }
                 }
             });
 
@@ -251,7 +242,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         adapter = new ChatScreenAdapter(this, this.clientId);
         ((ListView) findViewById(R.id.chatList)).setAdapter(adapter);
         try {
-            Connection.getInstance().init(messageListener, presenceListener, chatInitializedCallback);
+            Connection.getInstance().init(messageListener, presenceListener, new ConnectionCallback() {
+                @Override
+                public void onConnectionCallback() throws AblyException {
+                    chatInitializedCallback.onConnectionCallback();
+
+                    try {
+                        Connection.getInstance().getMessagesHistory(MainActivity.this.getMessageHistoryCallback);
+                        Connection.getInstance().getPresenceHistory(MainActivity.this.getPresenceHistoryCallback);
+                    } catch (AblyException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onConnectionCallbackWithResult(BaseMessage[] result) throws AblyException {
+
+                }
+            });
         } catch (AblyException e) {
             e.printStackTrace();
         }

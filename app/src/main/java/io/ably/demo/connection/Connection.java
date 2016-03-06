@@ -176,7 +176,7 @@ public class Connection {
 
             @Override
             public void onError(ErrorInfo errorInfo) {
-                Log.e("PresenceRegistration", "Something Went Wrong!");
+                Log.e("PresenceRegistration", errorInfo.message);
             }
         });
     }
