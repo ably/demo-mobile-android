@@ -44,6 +44,7 @@
             android:layout_below="@+id/textView"
             android:layout_marginTop="70dp"
             android:background="@drawable/usernameshape"
+            android:imeOptions="actionGo"
             android:hint="\@handle"
             android:padding="8dp"
             android:singleLine="true"
