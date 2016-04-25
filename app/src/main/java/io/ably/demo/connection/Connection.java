@@ -90,7 +90,13 @@ public class Connection {
     }
 
     public PresenceMessage[] getPresentUsers() {
-        return sessionChannel.presence.get();
+        try {
+            return sessionChannel.presence.get();
+        }
+        catch (AblyException e) {
+            e.printStackTrace();
+            return new PresenceMessage[0];
+        }
     }
 
     public void getPresenceHistory(final PresenceHistoryRetrievedCallback callback) throws AblyException {
