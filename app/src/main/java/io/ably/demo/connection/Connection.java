@@ -10,6 +10,7 @@ import java.util.Arrays;
 import io.ably.lib.realtime.AblyRealtime;
 import io.ably.lib.realtime.Channel;
 import io.ably.lib.realtime.CompletionListener;
+import io.ably.lib.realtime.ConnectionState;
 import io.ably.lib.realtime.ConnectionStateListener;
 import io.ably.lib.realtime.Presence;
 import io.ably.lib.types.AblyException;
@@ -235,6 +236,10 @@ public class Connection {
     }
 
     public void userHasEndedTyping() {
+        if(this.ablyRealtime.connection.state != ConnectionState.connected) {
+            return;
+        }
+
         try {
             JsonObject payload = new JsonObject();
             payload.addProperty("isTyping", false);
