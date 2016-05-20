@@ -67,23 +67,26 @@ public class Connection {
 
                         try {
                             sessionChannel.attach();
-
-                            callback.onConnectionCallback();
+                            callback.onConnectionCallback(null);
                         } catch (AblyException e) {
                             e.printStackTrace();
+                            callback.onConnectionCallback(e);
                             Log.e("ChannelAttach", "Something went wrong!");
+                            return;
                         }
                         break;
                     case disconnected:
-
+                        callback.onConnectionCallback(new Exception("Ably connection was disconnected. We will retry connecting again in 15 seconds."));
                         break;
                     case suspended:
+                        callback.onConnectionCallback(new Exception("Ably connection was suspended. We will retry connecting again in 60 seconds."));
                         break;
                     case closing:
                         sessionChannel.unsubscribe(messageListener);
                         sessionChannel.presence.unsubscribe(presenceListener);
                         break;
                     case failed:
+                        callback.onConnectionCallback(new Exception("We're sorry, Ably connection failed. Please restart the app."));
                         break;
                 }
             }
@@ -137,6 +140,7 @@ public class Connection {
                     return Arrays.asList(messages.items());
                 } catch (AblyException e) {
                     e.printStackTrace();
+                    callback.onMessageHistoryRetrieved(Arrays.asList(new Message[] {}), e);
                 }
                 return null;
             }
@@ -144,7 +148,7 @@ public class Connection {
             @Override
             protected void onPostExecute(Object result) {
                 if (result != null) {
-                    callback.onMessageHistoryRetrieved((Iterable<Message>) result);
+                    callback.onMessageHistoryRetrieved((Iterable<Message>) result, null);
                 }
             }
         };
@@ -160,11 +164,12 @@ public class Connection {
         sessionChannel.presence.enter(null, new CompletionListener() {
             @Override
             public void onSuccess() {
-                callback.onConnectionCallback();
+                callback.onConnectionCallback(null);
             }
 
             @Override
             public void onError(ErrorInfo errorInfo) {
+                callback.onConnectionCallback(new Exception(errorInfo.message));
                 Log.e("PresenceRegistration", errorInfo.message);
             }
         });

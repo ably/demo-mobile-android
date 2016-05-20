@@ -143,7 +143,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     };
     private MessageHistoryRetrievedCallback getMessageHistoryCallback = new MessageHistoryRetrievedCallback() {
         @Override
-        public void onMessageHistoryRetrieved(Iterable<Message> messages) {
+        public void onMessageHistoryRetrieved(Iterable<Message> messages, Exception ex) {
+            if(ex != null) {
+                showError("Unable to retrieve message history", ex);
+                return;
+            }
             adapter.addItems(messages);
         }
     };
@@ -162,7 +166,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     };
     private ConnectionCallback chatInitializedCallback = new ConnectionCallback() {
         @Override
-        public void onConnectionCallback() {
+        public void onConnectionCallback(Exception ex) {
+            if(ex != null) {
+                showError("Unable to connect to Ably service", ex);
+                return;
+            }
+
             addCurrentMembers();
             runOnUiThread(new Runnable() {
                 @Override
@@ -184,7 +193,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     };
     private ConnectionCallback connectionCallback = new ConnectionCallback() {
         @Override
-        public void onConnectionCallback() {
+        public void onConnectionCallback(Exception ex) {
+            if (ex != null) {
+                showError("Unable to connect", ex);
+                return;
+            }
+
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -254,13 +268,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         try {
             Connection.getInstance().init(messageListener, presenceListener, new ConnectionCallback() {
                 @Override
-                public void onConnectionCallback() {
-                    chatInitializedCallback.onConnectionCallback();
+                public void onConnectionCallback(Exception ex) {
+                    if(ex != null) {
+                        showError("Unable to connect", ex);
+                        return;
+                    }
+
+                    chatInitializedCallback.onConnectionCallback(ex);
 
                     try {
                         Connection.getInstance().getMessagesHistory(MainActivity.this.getMessageHistoryCallback);
                         Connection.getInstance().getPresenceHistory(MainActivity.this.getPresenceHistoryCallback);
                     } catch (AblyException e) {
+                        chatInitializedCallback.onConnectionCallback(e);
                         e.printStackTrace();
                     }
                 }
@@ -342,6 +362,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void run() {
                 ((TextView) findViewById(R.id.presenceBadge)).setText(String.valueOf(presentUsers.size()));
+            }
+        });
+    }
+
+    private void showError(final String title, final Exception ex) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, ex.getMessage(), Toast.LENGTH_LONG).show();
+             /*   AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                dialogBuilder.setTitle(title);
+                dialogBuilder.setMessage(ex.getMessage());
+                dialogBuilder.setCancelable(true);
+                dialogBuilder.show();*/
             }
         });
     }
