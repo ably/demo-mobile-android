@@ -143,13 +143,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     };
     private MessageHistoryRetrievedCallback getMessageHistoryCallback = new MessageHistoryRetrievedCallback() {
         @Override
-        public void onMessageHistoryRetrieved(Iterable<Message> messages) throws AblyException {
+        public void onMessageHistoryRetrieved(Iterable<Message> messages) {
             adapter.addItems(messages);
         }
     };
     private PresenceHistoryRetrievedCallback getPresenceHistoryCallback = new PresenceHistoryRetrievedCallback() {
         @Override
-        public void onPresenceHistoryRetrieved(Iterable<PresenceMessage> presenceMessages) throws AblyException {
+        public void onPresenceHistoryRetrieved(Iterable<PresenceMessage> presenceMessages) {
             ArrayList<PresenceMessage> messagesExceptUpdates = new ArrayList<PresenceMessage>();
             for (PresenceMessage message : presenceMessages) {
                 if (message.action != PresenceMessage.Action.update) {
@@ -162,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     };
     private ConnectionCallback chatInitializedCallback = new ConnectionCallback() {
         @Override
-        public void onConnectionCallback() throws AblyException {
+        public void onConnectionCallback() {
             addCurrentMembers();
             runOnUiThread(new Runnable() {
                 @Override
@@ -178,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         @Override
-        public void onConnectionCallbackWithResult(BaseMessage[] result) throws AblyException {
+        public void onConnectionCallbackWithResult(BaseMessage[] result) {
 
         }
     };
@@ -254,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         try {
             Connection.getInstance().init(messageListener, presenceListener, new ConnectionCallback() {
                 @Override
-                public void onConnectionCallback() throws AblyException {
+                public void onConnectionCallback() {
                     chatInitializedCallback.onConnectionCallback();
 
                     try {
@@ -266,7 +266,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
 
                 @Override
-                public void onConnectionCallbackWithResult(BaseMessage[] result) throws AblyException {
+                public void onConnectionCallbackWithResult(BaseMessage[] result) {
 
                 }
             });

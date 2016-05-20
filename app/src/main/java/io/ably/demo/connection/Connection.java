@@ -116,11 +116,7 @@ public class Connection {
             @Override
             protected void onPostExecute(Object result) {
                 if (result != null) {
-                    try {
-                        callback.onPresenceHistoryRetrieved((Iterable<PresenceMessage>) result);
-                    } catch (AblyException e) {
-                        e.printStackTrace();
-                    }
+                    callback.onPresenceHistoryRetrieved((Iterable<PresenceMessage>) result);
                 }
             }
         };
@@ -148,11 +144,7 @@ public class Connection {
             @Override
             protected void onPostExecute(Object result) {
                 if (result != null) {
-                    try {
-                        callback.onMessageHistoryRetrieved((Iterable<Message>) result);
-                    } catch (AblyException e) {
-                        e.printStackTrace();
-                    }
+                    callback.onMessageHistoryRetrieved((Iterable<Message>) result);
                 }
             }
         };
@@ -168,11 +160,7 @@ public class Connection {
         sessionChannel.presence.enter(null, new CompletionListener() {
             @Override
             public void onSuccess() {
-                try {
-                    callback.onConnectionCallback();
-                } catch (AblyException e) {
-                    e.printStackTrace();
-                }
+                callback.onConnectionCallback();
             }
 
             @Override
