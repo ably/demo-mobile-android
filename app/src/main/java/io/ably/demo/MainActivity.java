@@ -115,7 +115,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Runnable isUserTypingRunnable = new Runnable() {
         @Override
         public void run() {
-            //Toast.makeText(getApplicationContext(), "User has stopped writing", Toast.LENGTH_SHORT).show();
             Connection.getInstance().userHasEndedTyping();
             typingFlag = false;
         }
@@ -134,7 +133,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void afterTextChanged(Editable s) {
             if (!typingFlag) {
-                Connection.getInstance().userHasStartedTyping();
+                Connection.getInstance().userHasStartedTyping(new ConnectionCallback() {
+                    @Override
+                    public void onConnectionCallback(Exception ex) {
+                        if(ex != null) {
+                            showError("Unable to send typing notification", ex);
+                        }
+                    }
+                });
                 typingFlag = true;
             }
             isUserTypingHandler.removeCallbacks(isUserTypingRunnable);
@@ -183,12 +189,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     ((EditText) findViewById(R.id.textET)).addTextChangedListener(isUserTypingTextWatcher);
                 }
             });
-
-        }
-
-        @Override
-        public void onConnectionCallbackWithResult(BaseMessage[] result) {
-
         }
     };
     private ConnectionCallback connectionCallback = new ConnectionCallback() {
@@ -205,11 +205,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     showChatScreen();
                 }
             });
-        }
-
-        @Override
-        public void onConnectionCallbackWithResult(BaseMessage[] result) {
-
         }
     };
 
@@ -230,8 +225,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             return false;
                         }
 
-                        Connection.getInstance().sendMessage(messageText.toString());
-                        ((EditText) findViewById(R.id.textET)).setText("");
+                        Connection.getInstance().sendMessage(messageText.toString(), new ConnectionCallback() {
+                            @Override
+                            public void onConnectionCallback(Exception ex) {
+                                if(ex != null) {
+                                    showError("Unable to send message", ex);
+                                    return;
+                                }
+
+                                ((EditText) findViewById(R.id.textET)).setText("");
+                            }
+                        });
                     } catch (AblyException e) {
                         e.printStackTrace();
                     }
@@ -284,11 +288,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         e.printStackTrace();
                     }
                 }
-
-                @Override
-                public void onConnectionCallbackWithResult(BaseMessage[] result) {
-
-                }
             });
         } catch (AblyException e) {
             e.printStackTrace();
@@ -321,7 +320,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     Connection.getInstance().establishConnectionForID(this.clientId, connectionCallback);
                 } catch (AblyException e) {
-                    Toast.makeText(this, R.string.unable_to_connect, Toast.LENGTH_LONG).show();
+                    showError("Unable to connect", e);
                     Log.e("AblyConnection", e.getMessage());
                 }
                 break;

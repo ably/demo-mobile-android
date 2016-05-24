@@ -76,7 +76,7 @@ public class Connection {
                         }
                         break;
                     case disconnected:
-                        callback.onConnectionCallback(new Exception("Ably connection was disconnected. We will retry connecting again in 15 seconds."));
+                        callback.onConnectionCallback(new Exception("Ably connection was disconnected. We will retry connecting again in 30 seconds."));
                         break;
                     case suspended:
                         callback.onConnectionCallback(new Exception("Ably connection was suspended. We will retry connecting again in 60 seconds."));
@@ -175,16 +175,17 @@ public class Connection {
         });
     }
 
-    public void sendMessage(String message) throws AblyException {
+    public void sendMessage(String message, final ConnectionCallback callback) throws AblyException {
         sessionChannel.publish(userName, message, new CompletionListener() {
             @Override
             public void onSuccess() {
+                callback.onConnectionCallback(null);
                 Log.d("MessageSending", "Message sent!!!");
             }
 
             @Override
             public void onError(ErrorInfo errorInfo) {
-                Log.e("MessageSending", errorInfo.message);
+                callback.onConnectionCallback(new Exception(errorInfo.message));
             }
         });
     }
@@ -201,7 +202,7 @@ public class Connection {
         }
     }
 
-    public void userHasStartedTyping() {
+    public void userHasStartedTyping(final ConnectionCallback callback) {
         try {
             JsonObject payload = new JsonObject();
             payload.addProperty("isTyping", true);
@@ -209,12 +210,12 @@ public class Connection {
             sessionChannel.presence.update(payload, new CompletionListener() {
                 @Override
                 public void onSuccess() {
-                    Log.d("", "");
+                    callback.onConnectionCallback(null);
                 }
 
                 @Override
                 public void onError(ErrorInfo errorInfo) {
-                    Log.d("", "");
+                    callback.onConnectionCallback(new Exception(errorInfo.message));
                 }
             });
         } catch (AblyException e) {
