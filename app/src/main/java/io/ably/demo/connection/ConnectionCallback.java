@@ -5,8 +5,6 @@ import io.ably.lib.types.BaseMessage;
 
 public interface ConnectionCallback {
 
-    void onConnectionCallback();
-
-    void onConnectionCallbackWithResult(BaseMessage[] result);
+    void onConnectionCallback(Exception ex);
 }
 

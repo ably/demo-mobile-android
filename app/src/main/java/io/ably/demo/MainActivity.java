@@ -115,7 +115,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Runnable isUserTypingRunnable = new Runnable() {
         @Override
         public void run() {
-            //Toast.makeText(getApplicationContext(), "User has stopped writing", Toast.LENGTH_SHORT).show();
             Connection.getInstance().userHasEndedTyping();
             typingFlag = false;
         }
@@ -134,7 +133,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void afterTextChanged(Editable s) {
             if (!typingFlag) {
-                Connection.getInstance().userHasStartedTyping();
+                Connection.getInstance().userHasStartedTyping(new ConnectionCallback() {
+                    @Override
+                    public void onConnectionCallback(Exception ex) {
+                        if(ex != null) {
+                            showError("Unable to send typing notification", ex);
+                        }
+                    }
+                });
                 typingFlag = true;
             }
             isUserTypingHandler.removeCallbacks(isUserTypingRunnable);
@@ -143,7 +149,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     };
     private MessageHistoryRetrievedCallback getMessageHistoryCallback = new MessageHistoryRetrievedCallback() {
         @Override
-        public void onMessageHistoryRetrieved(Iterable<Message> messages) {
+        public void onMessageHistoryRetrieved(Iterable<Message> messages, Exception ex) {
+            if(ex != null) {
+                showError("Unable to retrieve message history", ex);
+                return;
+            }
             adapter.addItems(messages);
         }
     };
@@ -162,7 +172,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     };
     private ConnectionCallback chatInitializedCallback = new ConnectionCallback() {
         @Override
-        public void onConnectionCallback() {
+        public void onConnectionCallback(Exception ex) {
+            if(ex != null) {
+                showError("Unable to connect to Ably service", ex);
+                return;
+            }
+
             addCurrentMembers();
             runOnUiThread(new Runnable() {
                 @Override
@@ -174,28 +189,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     ((EditText) findViewById(R.id.textET)).addTextChangedListener(isUserTypingTextWatcher);
                 }
             });
-
-        }
-
-        @Override
-        public void onConnectionCallbackWithResult(BaseMessage[] result) {
-
         }
     };
     private ConnectionCallback connectionCallback = new ConnectionCallback() {
         @Override
-        public void onConnectionCallback() {
+        public void onConnectionCallback(Exception ex) {
+            if (ex != null) {
+                showError("Unable to connect", ex);
+                return;
+            }
+
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     showChatScreen();
                 }
             });
-        }
-
-        @Override
-        public void onConnectionCallbackWithResult(BaseMessage[] result) {
-
         }
     };
 
@@ -216,8 +225,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             return false;
                         }
 
-                        Connection.getInstance().sendMessage(messageText.toString());
-                        ((EditText) findViewById(R.id.textET)).setText("");
+                        Connection.getInstance().sendMessage(messageText.toString(), new ConnectionCallback() {
+                            @Override
+                            public void onConnectionCallback(Exception ex) {
+                                if(ex != null) {
+                                    showError("Unable to send message", ex);
+                                    return;
+                                }
+
+                                ((EditText) findViewById(R.id.textET)).setText("");
+                            }
+                        });
                     } catch (AblyException e) {
                         e.printStackTrace();
                     }
@@ -254,20 +272,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         try {
             Connection.getInstance().init(messageListener, presenceListener, new ConnectionCallback() {
                 @Override
-                public void onConnectionCallback() {
-                    chatInitializedCallback.onConnectionCallback();
+                public void onConnectionCallback(Exception ex) {
+                    if(ex != null) {
+                        showError("Unable to connect", ex);
+                        return;
+                    }
+
+                    chatInitializedCallback.onConnectionCallback(ex);
 
                     try {
                         Connection.getInstance().getMessagesHistory(MainActivity.this.getMessageHistoryCallback);
                         Connection.getInstance().getPresenceHistory(MainActivity.this.getPresenceHistoryCallback);
                     } catch (AblyException e) {
+                        chatInitializedCallback.onConnectionCallback(e);
                         e.printStackTrace();
                     }
-                }
-
-                @Override
-                public void onConnectionCallbackWithResult(BaseMessage[] result) {
-
                 }
             });
         } catch (AblyException e) {
@@ -301,7 +320,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     Connection.getInstance().establishConnectionForID(this.clientId, connectionCallback);
                 } catch (AblyException e) {
-                    Toast.makeText(this, R.string.unable_to_connect, Toast.LENGTH_LONG).show();
+                    showError("Unable to connect", e);
                     Log.e("AblyConnection", e.getMessage());
                 }
                 break;
@@ -342,6 +361,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void run() {
                 ((TextView) findViewById(R.id.presenceBadge)).setText(String.valueOf(presentUsers.size()));
+            }
+        });
+    }
+
+    private void showError(final String title, final Exception ex) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, ex.getMessage(), Toast.LENGTH_LONG).show();
+             /*   AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                dialogBuilder.setTitle(title);
+                dialogBuilder.setMessage(ex.getMessage());
+                dialogBuilder.setCancelable(true);
+                dialogBuilder.show();*/
             }
         });
     }
