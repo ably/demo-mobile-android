@@ -233,7 +233,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     return;
                                 }
 
-                                ((EditText) findViewById(R.id.textET)).setText("");
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        ((EditText) findViewById(R.id.textET)).setText("");
+                                    }
+                                });
                             }
                         });
                     } catch (AblyException e) {
