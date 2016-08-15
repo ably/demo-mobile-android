@@ -100,9 +100,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     }
 
                                     ((TextView) findViewById(R.id.isTyping)).setText(messageToShow.toString());
-                                    findViewById(R.id.isTyping).setVisibility(View.VISIBLE);
+                                    findViewById(R.id.isTypingContainer).setVisibility(View.VISIBLE);
                                 } else {
-                                    findViewById(R.id.isTyping).setVisibility(View.GONE);
+                                    findViewById(R.id.isTypingContainer).setVisibility(View.GONE);
                                 }
                             }
                         });
