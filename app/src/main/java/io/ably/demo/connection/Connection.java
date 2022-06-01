@@ -49,6 +49,7 @@ public class Connection {
         clientOptions.authUrl = "https://www.ably.io/ably-auth/token-request/demos";
         clientOptions.logLevel = io.ably.lib.util.Log.VERBOSE;
         clientOptions.clientId = userName;
+        //clientOptions.key = "123";
 
         ablyRealtime = new AblyRealtime(clientOptions);
 
