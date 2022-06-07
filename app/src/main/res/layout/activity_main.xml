@@ -22,9 +22,9 @@
             android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_below="@+id/imageView"
             android:layout_alignLeft="@+id/imageView"
             android:layout_alignRight="@+id/imageView"
-            android:layout_below="@+id/imageView"
             android:layout_marginTop="5dp"
             android:background="@drawable/text_shape"
             android:gravity="center_horizontal"
@@ -34,7 +34,7 @@
             android:textStyle="bold" />
 
         <EditText
-            android:id="@+id/usernameET"
+            android:id="@+id/keyET"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_below="@+id/textView"
@@ -42,9 +42,27 @@
             android:layout_alignRight="@+id/imageView"
             android:layout_alignParentStart="false"
             android:layout_alignParentEnd="false"
-            android:layout_marginTop="70dp"
+            android:layout_marginTop="30dp"
             android:background="@drawable/usernameshape"
-            android:hint="\@handle"
+            android:hint="Your private key"
+            android:imeOptions="actionGo"
+            android:padding="8dp"
+            android:singleLine="true"
+            android:textColor="#000000"
+            android:textColorHint="#22000000" />
+
+        <EditText
+            android:id="@+id/usernameET"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_below="@+id/keyET"
+            android:layout_alignLeft="@+id/imageView"
+            android:layout_alignRight="@+id/imageView"
+            android:layout_alignParentStart="false"
+            android:layout_alignParentEnd="false"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/usernameshape"
+            android:hint="User name"
             android:imeOptions="actionGo"
             android:padding="8dp"
             android:singleLine="true"
@@ -55,10 +73,10 @@
             android:id="@+id/joinBtn"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
+            android:layout_below="@+id/usernameET"
             android:layout_alignLeft="@+id/imageView"
             android:layout_alignRight="@+id/imageView"
-            android:layout_below="@+id/usernameET"
-            android:layout_marginTop="3dp"
+            android:layout_marginTop="30dp"
             android:background="@drawable/joinbuttonshape"
             android:text="Join"
             android:textColor="#FFFFFF" />
@@ -99,8 +117,8 @@
             android:background="#FFB600"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingBottom="15dp"
             android:paddingTop="15dp"
+            android:paddingBottom="15dp"
             android:visibility="visible">
 
             <EditText
@@ -126,9 +144,9 @@
             android:layout_marginTop="-73dp">
 
             <LinearLayout
+                android:id="@+id/isTypingContainer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/isTypingContainer"
                 android:layout_alignParentStart="true"
                 android:layout_alignParentLeft="true"
                 android:layout_centerVertical="true"
@@ -140,19 +158,19 @@
                 <ImageView
                     android:layout_width="16dp"
                     android:layout_height="match_parent"
-                    android:src="@drawable/is_typing_icon"
-                    android:scaleType="fitCenter"/>
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/is_typing_icon" />
 
                 <TextView
                     android:id="@+id/isTyping"
                     android:layout_width="wrap_content"
                     android:layout_height="25dp"
+                    android:paddingLeft="8dp"
+                    android:paddingTop="2dp"
+                    android:paddingRight="8dp"
                     android:scaleType="fitCenter"
                     android:text="Someone is typing"
-                    android:textColor="#FFFFFF"
-                    android:paddingTop="2dp"
-                    android:paddingLeft="8dp"
-                    android:paddingRight="8dp"/>
+                    android:textColor="#FFFFFF" />
             </LinearLayout>
 
             <ImageButton

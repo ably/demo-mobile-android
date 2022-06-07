@@ -32,7 +32,6 @@ import io.ably.demo.connection.PresenceHistoryRetrievedCallback;
 import io.ably.lib.realtime.Channel;
 import io.ably.lib.realtime.Presence;
 import io.ably.lib.types.AblyException;
-import io.ably.lib.types.BaseMessage;
 import io.ably.lib.types.Message;
 import io.ably.lib.types.PresenceMessage;
 
@@ -112,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
     };
-    private String clientId;
+    private String clientId, privateKey;
     private Runnable isUserTypingRunnable = new Runnable() {
         @Override
         public void run() {
@@ -137,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Connection.getInstance().userHasStartedTyping(new ConnectionCallback() {
                     @Override
                     public void onConnectionCallback(Exception ex) {
-                        if(ex != null) {
+                        if (ex != null) {
                             showError("Unable to send typing notification", ex);
                         }
                     }
@@ -151,7 +150,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private MessageHistoryRetrievedCallback getMessageHistoryCallback = new MessageHistoryRetrievedCallback() {
         @Override
         public void onMessageHistoryRetrieved(Iterable<Message> messages, Exception ex) {
-            if(ex != null) {
+            if (ex != null) {
                 showError("Unable to retrieve message history", ex);
                 return;
             }
@@ -174,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ConnectionCallback chatInitializedCallback = new ConnectionCallback() {
         @Override
         public void onConnectionCallback(Exception ex) {
-            if(ex != null) {
+            if (ex != null) {
                 showError("Unable to connect to Ably service", ex);
                 return;
             }
@@ -213,6 +212,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        findViewById(R.id.imageView).setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                ((EditText) findViewById(R.id.usernameET)).setText("");
+                ((EditText) findViewById(R.id.keyET)).setText("");
+                return true;
+            }
+        });
         findViewById(R.id.joinBtn).setOnClickListener(this);
         findViewById(R.id.mentionBtn).setOnClickListener(this);
         ((TextView) findViewById(R.id.textET)).setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -229,7 +236,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Connection.getInstance().sendMessage(messageText.toString(), new ConnectionCallback() {
                             @Override
                             public void onConnectionCallback(Exception ex) {
-                                if(ex != null) {
+                                if (ex != null) {
                                     showError("Unable to send message", ex);
                                     return;
                                 }
@@ -279,7 +286,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Connection.getInstance().init(messageListener, presenceListener, new ConnectionCallback() {
                 @Override
                 public void onConnectionCallback(Exception ex) {
-                    if(ex != null) {
+                    if (ex != null) {
                         showError("Unable to connect", ex);
                         return;
                     }
@@ -323,8 +330,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 try {
                     this.clientId = ((TextView) findViewById(R.id.usernameET)).getText().toString();
+                    this.privateKey = ((TextView) findViewById(R.id.keyET)).getText().toString();
 
-                    Connection.getInstance().establishConnectionForID(this.clientId, connectionCallback);
+                    Connection.getInstance().establishConnectionForKey(this.clientId, this.privateKey, connectionCallback);
                 } catch (AblyException e) {
                     showError("Unable to connect", e);
                     Log.e("AblyConnection", e.getMessage());
