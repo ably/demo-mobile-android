@@ -14,8 +14,6 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,14 +27,19 @@ import io.ably.demo.connection.Connection;
 import io.ably.demo.connection.ConnectionCallback;
 import io.ably.demo.connection.MessageHistoryRetrievedCallback;
 import io.ably.demo.connection.PresenceHistoryRetrievedCallback;
+import io.ably.demo.databinding.ActivityMainBinding;
 import io.ably.lib.realtime.Channel;
 import io.ably.lib.realtime.Presence;
 import io.ably.lib.types.AblyException;
 import io.ably.lib.types.Message;
 import io.ably.lib.types.PresenceMessage;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity {
 
+    //Enter your private key obtained from ably.com
+    private static final String PRIVATE_KEY = "";
+
+    private ActivityMainBinding binding;
     ChatScreenAdapter adapter;
     Channel.MessageListener messageListener = new Channel.MessageListener() {
         @Override
@@ -99,10 +102,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                             }
                                     }
 
-                                    ((TextView) findViewById(R.id.isTyping)).setText(messageToShow.toString());
-                                    findViewById(R.id.isTypingContainer).setVisibility(View.VISIBLE);
+                                    binding.isTyping.setText(messageToShow.toString());
+                                    binding.isTypingContainer.setVisibility(View.VISIBLE);
                                 } else {
-                                    findViewById(R.id.isTypingContainer).setVisibility(View.GONE);
+                                    binding.isTypingContainer.setVisibility(View.GONE);
                                 }
                             }
                         });
@@ -183,10 +186,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public void run() {
 
-                    findViewById(R.id.progressBar).setVisibility(View.GONE);
-                    findViewById(R.id.chatLayout).setVisibility(View.VISIBLE);
-                    ((EditText) findViewById(R.id.textET)).removeTextChangedListener(isUserTypingTextWatcher);
-                    ((EditText) findViewById(R.id.textET)).addTextChangedListener(isUserTypingTextWatcher);
+                    binding.progressBar.setVisibility(View.GONE);
+                    binding.chatLayout.setVisibility(View.VISIBLE);
+                    binding.textET.removeTextChangedListener(isUserTypingTextWatcher);
+                    binding.textET.addTextChangedListener(isUserTypingTextWatcher);
                 }
             });
         }
@@ -211,23 +214,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        findViewById(R.id.imageView).setOnLongClickListener(new View.OnLongClickListener() {
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        if (!PRIVATE_KEY.isEmpty()) {
+            binding.keyET.setVisibility(View.GONE);
+        }
+
+        binding.joinBtn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onLongClick(View v) {
-                ((EditText) findViewById(R.id.usernameET)).setText("");
-                ((EditText) findViewById(R.id.keyET)).setText("");
-                return true;
+            public void onClick(View v) {
+                onJoinClick();
             }
         });
-        findViewById(R.id.joinBtn).setOnClickListener(this);
-        findViewById(R.id.mentionBtn).setOnClickListener(this);
-        ((TextView) findViewById(R.id.textET)).setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        binding.mentionBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onMentionClick();
+            }
+        });
+        binding.textET.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEND || event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
                     try {
-                        CharSequence messageText = ((EditText) findViewById(R.id.textET)).getText();
+                        CharSequence messageText = binding.textET.getText();
 
                         if (TextUtils.isEmpty(messageText)) {
                             return false;
@@ -244,7 +255,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        ((EditText) findViewById(R.id.textET)).setText("");
+                                        binding.textET.setText("");
                                     }
                                 });
                             }
@@ -256,11 +267,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return false;
             }
         });
-        ((TextView) this.findViewById(R.id.usernameET)).setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        binding.usernameET.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_GO || event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                    MainActivity.this.onClick(MainActivity.this.findViewById(R.id.joinBtn));
+                    onJoinClick();
                 }
 
                 return false;
@@ -278,10 +289,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void showChatScreen() {
-        findViewById(R.id.loginLayout).setVisibility(View.GONE);
+        binding.loginLayout.setVisibility(View.GONE);
 
         adapter = new ChatScreenAdapter(this, this.clientId);
-        ((ListView) findViewById(R.id.chatList)).setAdapter(adapter);
+        binding.chatList.setAdapter(adapter);
         try {
             Connection.getInstance().init(messageListener, presenceListener, new ConnectionCallback() {
                 @Override
@@ -316,48 +327,48 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         updatePresentUsersBadge();
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.joinBtn:
-                View view = getCurrentFocus();
-                if (view != null) {
-                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                }
-                findViewById(R.id.loginLayout).setVisibility(View.GONE);
-                findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+    private void onJoinClick() {
+        View view = getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+        binding.loginLayout.setVisibility(View.GONE);
+        binding.progressBar.setVisibility(View.VISIBLE);
 
-                try {
-                    this.clientId = ((TextView) findViewById(R.id.usernameET)).getText().toString();
-                    this.privateKey = ((TextView) findViewById(R.id.keyET)).getText().toString();
+        try {
+            this.clientId = binding.usernameET.getText().toString();
+            if (PRIVATE_KEY.isEmpty()) {
+                this.privateKey = binding.keyET.getText().toString();
+            } else {
+                this.privateKey = PRIVATE_KEY;
+            }
 
-                    Connection.getInstance().establishConnectionForKey(this.clientId, this.privateKey, connectionCallback);
-                } catch (AblyException e) {
-                    showError("Unable to connect", e);
-                    Log.e("AblyConnection", e.getMessage());
-                }
-                break;
-            case R.id.mentionBtn:
-                AlertDialog.Builder adBuilder = new AlertDialog.Builder(this);
-                adBuilder.setSingleChoiceItems(new PresenceAdapter(this, presentUsers, this.clientId), -1, new DialogInterface.OnClickListener() {
+            Connection.getInstance().establishConnectionForKey(this.clientId, this.privateKey, connectionCallback);
+        } catch (AblyException e) {
+            showError("Unable to connect", e);
+            Log.e("AblyConnection", e.getMessage());
+        }
+    }
+
+    private void onMentionClick() {
+        AlertDialog.Builder adBuilder = new AlertDialog.Builder(this);
+        adBuilder.setSingleChoiceItems(new PresenceAdapter(this, presentUsers, this.clientId), -1, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(final DialogInterface dialog, final int which) {
+                runOnUiThread(new Runnable() {
                     @Override
-                    public void onClick(final DialogInterface dialog, final int which) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                String textToAppend = String.format("@%s ", presentUsers.get(which));
-                                ((EditText) findViewById(R.id.textET)).append(textToAppend);
-                                dialog.cancel();
-                            }
-                        });
+                    public void run() {
+                        String textToAppend = String.format("@%s ", presentUsers.get(which));
+                        binding.textET.append(textToAppend);
+                        dialog.cancel();
                     }
                 });
-                adBuilder.setTitle("Handles");
-                adBuilder.setIcon(R.drawable.user_list_title_icon);
-                adBuilder.show();
-                break;
-        }
+            }
+        });
+        adBuilder.setTitle("Handles");
+        adBuilder.setIcon(R.drawable.user_list_title_icon);
+        adBuilder.show();
     }
 
     @Override
@@ -366,7 +377,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                ((EditText) findViewById(R.id.textET)).setText(presentUsers.get(resultCode));
+                binding.textET.setText(presentUsers.get(resultCode));
             }
         });
     }
@@ -375,7 +386,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                ((TextView) findViewById(R.id.presenceBadge)).setText(String.valueOf(presentUsers.size()));
+                binding.presenceBadge.setText(String.valueOf(presentUsers.size()));
             }
         });
     }
