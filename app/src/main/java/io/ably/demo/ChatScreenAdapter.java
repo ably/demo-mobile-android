@@ -2,140 +2,195 @@ package io.ably.demo;
 
 import android.graphics.Color;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
+import io.ably.demo.databinding.ChatMessageIncomingBinding;
+import io.ably.demo.databinding.ChatMessageOutgoingBinding;
+import io.ably.demo.databinding.PresenceMessageBinding;
 import io.ably.lib.types.BaseMessage;
 import io.ably.lib.types.Message;
 import io.ably.lib.types.PresenceMessage;
 
-public class ChatScreenAdapter extends BaseAdapter {
-    LayoutInflater layoutInflater;
-    ArrayList<BaseMessage> items = new ArrayList<>();
-    private MainActivity mainActivity;
-    private String ownClientId;
+public class ChatScreenAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    public ChatScreenAdapter(MainActivity mainActivity, String ownClientId) {
-        this.mainActivity = mainActivity;
-        this.layoutInflater = mainActivity.getLayoutInflater();
+    private static final String TAG = "ChatScreenAdapter";
+
+    private static final int TYPE_PRESENCE = 0;
+    private static final int TYPE_OUTGOING = 1;
+    private static final int TYPE_INCOMING = 2;
+
+    private final ArrayList<BaseMessage> items = new ArrayList<>();
+    private final String ownClientId;
+
+    public ChatScreenAdapter(String ownClientId) {
         this.ownClientId = ownClientId;
     }
 
     public void addItem(BaseMessage message) {
-        this.items.add(message);
-        this.sortItemsAndNotifyChange();
+        if (items.contains(message)) {
+            Log.d(TAG, "Duplicated message will not be added");
+            return;
+        }
+        this.items.add(0, message);
+        //Collections.sort(items, new ItemsTimeComparator());
+        //notifyItemInserted(0);
+        //notifyItemInserted(items.size());
+        notifyDataSetChanged();
     }
 
     public void addItems(Iterable<? extends BaseMessage> newItems) {
         for (BaseMessage item : newItems) {
             items.add(item);
         }
-        this.sortItemsAndNotifyChange();
+        //Collections.sort(items, new ItemsTimeComparator());
+        notifyDataSetChanged();
     }
 
-    private void sortItemsAndNotifyChange() {
-        Collections.sort(items, new ItemsTimeComparator());
-        notifyChange();
-    }
-
-    private void notifyChange() {
-        mainActivity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                notifyDataSetChanged();
+    @NonNull
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        switch (viewType) {
+            case TYPE_PRESENCE: {
+                PresenceMessageBinding binding = PresenceMessageBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+                return new PresenceViewHolder(binding);
             }
-        });
+            case TYPE_INCOMING: {
+                ChatMessageIncomingBinding binding = ChatMessageIncomingBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+                return new IncomingViewHolder(binding);
+            }
+            case TYPE_OUTGOING: {
+                ChatMessageOutgoingBinding binding = ChatMessageOutgoingBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+                return new OutgoingViewHolder(binding);
+            }
+            default: {
+                return null;
+            }
+        }
     }
 
     @Override
-    public int getCount() {
-        return items.size();
-    }
-
-    @Override
-    public Object getItem(int position) {
-        return items.get(position);
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        switch (holder.getItemViewType()) {
+            case TYPE_PRESENCE: {
+                PresenceViewHolder vh = ((PresenceViewHolder) holder);
+                vh.bind(((PresenceMessage) items.get(position)), ownClientId);
+                break;
+            }
+            case TYPE_INCOMING: {
+                IncomingViewHolder vh = ((IncomingViewHolder) holder);
+                vh.bind(items.get(position));
+                break;
+            }
+            case TYPE_OUTGOING: {
+                OutgoingViewHolder vh = ((OutgoingViewHolder) holder);
+                vh.bind(items.get(position));
+                break;
+            }
+        }
     }
 
     @Override
     public long getItemId(int position) {
-        return 0;
+        return items.get(position).timestamp;
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        if (this.items.get(position) instanceof Message) {
-            Message message = (Message) this.items.get(position);
-            if (!this.ownClientId.equals(this.items.get(position).clientId)) {
-                convertView = this.layoutInflater.inflate(R.layout.chat_message_incoming, parent, false);
-                this.setupIncomingMessageView(message, convertView);
+    public int getItemCount() {
+        return items.size();
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        if (items.get(position) instanceof Message) {
+            if (!ownClientId.equals(items.get(position).clientId)) {
+                return TYPE_INCOMING;
             } else {
-                convertView = this.layoutInflater.inflate(R.layout.chat_message_outgoing, parent, false);
-                this.setupOutgoingMessageView(message, convertView);
+                return TYPE_OUTGOING;
+            }
+        } else {
+            return TYPE_PRESENCE;
+        }
+    }
+
+    public static class IncomingViewHolder extends RecyclerView.ViewHolder {
+        private final ChatMessageIncomingBinding binding;
+
+        public IncomingViewHolder(ChatMessageIncomingBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
+        }
+
+        public void bind(BaseMessage item) {
+            String relativeDateText = DateUtils.getRelativeTimeSpanString(binding.getRoot().getContext(), item.timestamp).toString();
+
+            binding.username.setText(item.clientId);
+            binding.timestamp.setText(relativeDateText);
+            binding.message.setText(item.data.toString());
+        }
+    }
+
+    public static class OutgoingViewHolder extends RecyclerView.ViewHolder {
+        private final ChatMessageOutgoingBinding binding;
+
+        public OutgoingViewHolder(ChatMessageOutgoingBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
+        }
+
+        public void bind(BaseMessage item) {
+            String relativeDateText = DateUtils.getRelativeTimeSpanString(binding.getRoot().getContext(), item.timestamp).toString();
+
+            binding.timestamp.setText(relativeDateText);
+            binding.message.setText(item.data.toString());
+        }
+    }
+
+    public static class PresenceViewHolder extends RecyclerView.ViewHolder {
+        private final PresenceMessageBinding binding;
+
+        public PresenceViewHolder(PresenceMessageBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
+        }
+
+        public void bind(PresenceMessage item, String ownClientId) {
+            if (item.action.equals(PresenceMessage.Action.enter)) {
+                binding.action.setTextColor(Color.rgb(207, 207, 207));
+                binding.action.setBackground(ContextCompat.getDrawable(binding.getRoot().getContext(), R.drawable.presence_in));
+            } else if (item.action.equals(PresenceMessage.Action.leave)) {
+                binding.action.setTextColor(Color.rgb(102, 102, 102));
+                binding.action.setBackground(ContextCompat.getDrawable(binding.getRoot().getContext(), R.drawable.presence_out));
             }
 
-        } else {
-            convertView = this.layoutInflater.inflate(R.layout.presence_message, parent, false);
-
-            this.setupPresenceView(position, convertView);
+            binding.action.setText(createActionText(item.clientId, ownClientId, item.action, item.timestamp));
         }
 
-        return convertView;
-    }
+        private String createActionText(String clientId, String ownClientId, PresenceMessage.Action action, long timestamp) {
+            String actionText = "";
+            switch (action) {
+                case enter:
+                    actionText = "entered";
+                    break;
+                case leave:
+                    actionText = "left";
+                    break;
+                default:
+                    actionText = "";
+                    break;
+            }
 
-    private void setupIncomingMessageView(Message message, View convertView) {
-        String relativeDateText = DateUtils.getRelativeTimeSpanString(mainActivity.getApplicationContext(), message.timestamp).toString();
-
-        ((TextView) convertView.findViewById(R.id.username)).setText(message.clientId);
-        ((TextView) convertView.findViewById(R.id.timestamp)).setText(relativeDateText);
-        ((TextView) convertView.findViewById(R.id.message)).setText(message.data.toString());
-    }
-
-    private void setupOutgoingMessageView(Message message, View convertView) {
-        String relativeDateText = DateUtils.getRelativeTimeSpanString(mainActivity.getApplicationContext(), message.timestamp).toString();
-
-        ((TextView) convertView.findViewById(R.id.timestamp)).setText(relativeDateText);
-        ((TextView) convertView.findViewById(R.id.message)).setText(message.data.toString());
-    }
-
-    private void setupPresenceView(int position, View convertView) {
-        PresenceMessage presenceMessage = (PresenceMessage) items.get(position);
-        TextView actionView = (TextView) convertView.findViewById(R.id.action);
-
-        if (presenceMessage.action.equals(PresenceMessage.Action.enter)) {
-            actionView.setTextColor(Color.rgb(207, 207, 207));
-            actionView.setBackground(mainActivity.getResources().getDrawable(R.drawable.presence_in));
-        } else if (presenceMessage.action.equals(PresenceMessage.Action.leave)) {
-            actionView.setTextColor(Color.rgb(102, 102, 102));
-            actionView.setBackground(mainActivity.getResources().getDrawable(R.drawable.presence_out));
+            String handle = clientId.equals(ownClientId) ? "You" : clientId;
+            String relativeDateText = DateUtils.getRelativeTimeSpanString(binding.getRoot().getContext(), timestamp).toString();
+            return String.format("%s %s the channel %s", handle, actionText, relativeDateText);
         }
-
-        String actionText = this.createActionText(presenceMessage.clientId, presenceMessage.action, presenceMessage.timestamp);
-        actionView.setText(actionText);
     }
 
-    private String createActionText(String clientId, PresenceMessage.Action action, long timestamp) {
-        String actionText = "";
-        switch (action) {
-            case enter:
-                actionText = "entered";
-                break;
-            case leave:
-                actionText = "left";
-                break;
-            default:
-                actionText = "";
-                break;
-        }
-
-        String handle = clientId.equals(this.ownClientId) ? "You" : clientId;
-        String relativeDateText = DateUtils.getRelativeTimeSpanString(mainActivity.getApplicationContext(), timestamp).toString();
-        return String.format("%s %s the channel %s", handle, actionText, relativeDateText);
-    }
 }

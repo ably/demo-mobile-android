@@ -1,6 +1,7 @@
 package io.ably.demo;
 
 import android.graphics.Color;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -11,12 +12,12 @@ import java.util.ArrayList;
 
 public class PresenceAdapter extends BaseAdapter {
 
-    private final MainActivity mainActivity;
+    private final LayoutInflater layoutInflater;
     private final String ownHandle;
-    ArrayList<String> items;
+    private final ArrayList<String> items;
 
-    public PresenceAdapter(MainActivity mainActivity, ArrayList<String> items, String ownHandle) {
-        this.mainActivity = mainActivity;
+    public PresenceAdapter(LayoutInflater inflater, ArrayList<String> items, String ownHandle) {
+        this.layoutInflater = inflater;
         this.items = items;
         this.ownHandle = ownHandle;
     }
@@ -39,7 +40,7 @@ public class PresenceAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
-            convertView = mainActivity.getLayoutInflater().inflate(R.layout.user_list_item, parent, false);
+            convertView = layoutInflater.inflate(R.layout.user_list_item, parent, false);
         }
 
         TextView handleView = (TextView) convertView.findViewById(R.id.handle);
@@ -47,6 +48,7 @@ public class PresenceAdapter extends BaseAdapter {
 
         if (handle.equals(this.ownHandle)) {
             handleView.setText(String.format("@%s (me)", handle));
+            handleView.setTextColor(Color.rgb(252, 77, 39));
         } else {
             handleView.setText(String.format("@%s", handle));
         }

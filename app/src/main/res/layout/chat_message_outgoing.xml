@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal">
+    android:layout_marginTop="5dp"
+    android:layout_marginBottom="5dp">
 
     <LinearLayout
         android:layout_width="0dp"
@@ -18,17 +20,18 @@
             android:id="@+id/timestamp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="right"
-            android:gravity="right"
-            android:text="12:34:52"
-            android:textColor="#77ffffff" />
+            android:layout_gravity="end"
+            android:gravity="end"
+            android:textColor="#77ffffff"
+            tools:text="12:34:52" />
 
         <TextView
             android:id="@+id/message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="left"
-            android:text="This is a long long text message"
-            android:textColor="#ffffffff" />
+            android:layout_gravity="end"
+            android:gravity="end"
+            android:textColor="#ffffffff"
+            tools:text="This is a long long text message" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

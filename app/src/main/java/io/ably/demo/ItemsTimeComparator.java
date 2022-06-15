@@ -6,7 +6,6 @@ import io.ably.lib.types.BaseMessage;
 
 public class ItemsTimeComparator implements Comparator<BaseMessage> {
     public int compare(BaseMessage left, BaseMessage right) {
-        int res = (int) (left.timestamp - right.timestamp);
-        return res;
+        return (int) (left.timestamp - right.timestamp);
     }
 }
