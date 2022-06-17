@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="chat_receiver_bg">#A0A0A0</color>
+    <color name="chat_sender_bg">#FFB600</color>
+    <color name="chat_bg">#FFB600</color>
+</resources>
