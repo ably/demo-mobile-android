@@ -9,21 +9,24 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/radial_background_shape"
-        android:gravity="center_vertical|center_horizontal">
+        android:gravity="center_vertical|center_horizontal"
+        android:padding="16dp">
 
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ablylogotilerectangle" />
+            android:paddingStart="50dp"
+            android:paddingEnd="50dp"
+            android:src="@drawable/ic_logo_full" />
 
         <TextView
             android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/imageView"
-            android:layout_alignLeft="@+id/imageView"
-            android:layout_alignRight="@+id/imageView"
+            android:layout_alignStart="@+id/imageView"
+            android:layout_alignEnd="@+id/imageView"
             android:layout_marginTop="5dp"
             android:background="@drawable/text_shape"
             android:gravity="center_horizontal"
@@ -37,8 +40,8 @@
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_below="@+id/textView"
-            android:layout_alignLeft="@+id/imageView"
-            android:layout_alignRight="@+id/imageView"
+            android:layout_alignStart="@+id/imageView"
+            android:layout_alignEnd="@+id/imageView"
             android:layout_alignParentStart="false"
             android:layout_alignParentEnd="false"
             android:layout_marginTop="30dp"
@@ -55,8 +58,8 @@
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_below="@+id/keyET"
-            android:layout_alignLeft="@+id/imageView"
-            android:layout_alignRight="@+id/imageView"
+            android:layout_alignStart="@+id/imageView"
+            android:layout_alignEnd="@+id/imageView"
             android:layout_alignParentStart="false"
             android:layout_alignParentEnd="false"
             android:layout_marginTop="10dp"
@@ -73,8 +76,8 @@
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_below="@+id/usernameET"
-            android:layout_alignLeft="@+id/imageView"
-            android:layout_alignRight="@+id/imageView"
+            android:layout_alignStart="@+id/imageView"
+            android:layout_alignEnd="@+id/imageView"
             android:layout_marginTop="30dp"
             android:background="@drawable/joinbuttonshape"
             android:text="Join"

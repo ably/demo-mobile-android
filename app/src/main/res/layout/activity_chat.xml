@@ -1,4 +1,4 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,15 +10,16 @@
         android:id="@+id/chatList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1"
+        android:layout_above="@+id/controllsLL"
         android:background="@android:color/transparent"
         android:paddingBottom="5dp" />
 
     <LinearLayout
         android:id="@+id/controllsLL"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:background="#FFB600"
+        android:layout_height="70dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/chat_bg"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingTop="15dp"
@@ -28,15 +29,15 @@
         <EditText
             android:id="@+id/textET"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"
-            android:layout_weight="1"
+            android:layout_height="32dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
             android:background="@drawable/usernameshape"
-            android:hint="your message"
+            android:hint="@string/your_message"
             android:imeOptions="actionSend"
             android:inputType="text"
-            android:paddingLeft="5dp"
+            android:paddingStart="5dp"
+            android:paddingEnd="5dp"
             android:singleLine="true"
             android:textColorHint="#AAAAAA" />
 
@@ -45,18 +46,20 @@
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="-80dp">
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="60dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
 
         <LinearLayout
             android:id="@+id/isTypingContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
-            android:layout_alignParentLeft="true"
             android:layout_centerVertical="true"
             android:background="@drawable/mentionshape"
             android:paddingStart="8dp"
-            android:paddingLeft="8dp"
+            android:paddingEnd="8dp"
             android:visibility="gone">
 
             <ImageView
@@ -73,8 +76,8 @@
                 android:paddingTop="2dp"
                 android:paddingRight="8dp"
                 android:scaleType="fitCenter"
-                android:text="Someone is typing"
-                android:textColor="#FFFFFF" />
+                android:textColor="#FFFFFF"
+                tools:text="Someone is typing" />
         </LinearLayout>
 
         <ImageButton
@@ -83,12 +86,12 @@
             android:layout_height="25dp"
             android:layout_alignParentEnd="true"
             android:background="@drawable/mentionshape"
-            android:paddingLeft="30dp"
-            android:paddingRight="8dp"
+            android:paddingStart="30dp"
+            android:paddingEnd="8dp"
             android:scaleType="fitCenter"
             android:src="@drawable/icperson"
-            android:text="Mntn"
-            android:visibility="visible" />
+            android:visibility="visible"
+            tools:text="Mntn" />
 
         <TextView
             android:id="@+id/presenceBadge"
@@ -96,10 +99,51 @@
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="false"
             android:layout_centerVertical="true"
-            android:layout_marginRight="-20dp"
-            android:layout_toLeftOf="@+id/mentionBtn"
-            android:text="1"
-            android:textColor="#FFFFFF" />
+            android:layout_marginEnd="-20dp"
+            android:layout_toStartOf="@+id/mentionBtn"
+            android:textColor="#FFFFFF"
+            tools:text="1" />
     </RelativeLayout>
 
-</LinearLayout>
+    <RelativeLayout
+        android:id="@+id/progress_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#66000000"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_gravity="center" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/error_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFF"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginBottom="20dp"
+            android:src="@drawable/ic_warning" />
+
+        <TextView
+            android:id="@+id/error_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:paddingStart="30dp"
+            android:paddingEnd="30dp"
+            android:text="@string/something_went_wrong_please_try_again_later"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</RelativeLayout>

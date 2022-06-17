@@ -32,7 +32,8 @@ import io.ably.lib.types.AblyException;
 import io.ably.lib.types.Message;
 import io.ably.lib.types.PresenceMessage;
 
-public class ChatActivity extends AppCompatActivity implements Presence.PresenceListener, Channel.MessageListener {
+public class ChatActivity extends AppCompatActivity implements Presence.PresenceListener, Channel.MessageListener,
+        MessageHistoryRetrievedCallback, PresenceHistoryRetrievedCallback {
 
     private static final String TAG = "ChatActivity";
     public static final String EXTRA_CLIENT_ID = "CLIENT_ID";
@@ -42,35 +43,30 @@ public class ChatActivity extends AppCompatActivity implements Presence.Presence
     private String clientId = "";
     private ChatScreenAdapter adapter;
 
-    private Handler isUserTypingHandler = new Handler();
+    private final Handler isUserTypingHandler = new Handler();
     private boolean typingFlag = false;
-    private ArrayList<String> usersCurrentlyTyping = new ArrayList<>();
-    private ArrayList<String> presentUsers = new ArrayList<>();
+    private final ArrayList<String> usersCurrentlyTyping = new ArrayList<>();
+    private final ArrayList<String> presentUsers = new ArrayList<>();
 
-    private Runnable isUserTypingRunnable = () -> {
+    private final Runnable isUserTypingRunnable = () -> {
         Connection.getInstance().userHasEndedTyping();
         typingFlag = false;
     };
-    private TextWatcher isUserTypingTextWatcher = new TextWatcher() {
+    private final TextWatcher isUserTypingTextWatcher = new TextWatcher() {
         @Override
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
         }
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
-
         }
 
         @Override
         public void afterTextChanged(Editable s) {
             if (!typingFlag) {
-                Connection.getInstance().userHasStartedTyping(new ConnectionCallback() {
-                    @Override
-                    public void onConnectionCallback(Exception ex) {
-                        if (ex != null) {
-                            showError("Unable to send typing notification", ex);
-                        }
+                Connection.getInstance().userHasStartedTyping(ex -> {
+                    if (ex != null) {
+                        showError("Unable to send typing notification", ex);
                     }
                 });
                 typingFlag = true;
@@ -79,45 +75,24 @@ public class ChatActivity extends AppCompatActivity implements Presence.Presence
             isUserTypingHandler.postDelayed(isUserTypingRunnable, 5000);
         }
     };
-    private MessageHistoryRetrievedCallback getMessageHistoryCallback = new MessageHistoryRetrievedCallback() {
-        @Override
-        public void onMessageHistoryRetrieved(Iterable<Message> messages, Exception ex) {
-            if (ex != null) {
-                showError("Unable to retrieve message history", ex);
-                return;
-            }
-            adapter.addItems(messages);
-        }
-    };
-    private PresenceHistoryRetrievedCallback getPresenceHistoryCallback = new PresenceHistoryRetrievedCallback() {
-        @Override
-        public void onPresenceHistoryRetrieved(Iterable<PresenceMessage> presenceMessages) {
-            ArrayList<PresenceMessage> messagesExceptUpdates = new ArrayList<PresenceMessage>();
-            for (PresenceMessage message : presenceMessages) {
-                if (message.action != PresenceMessage.Action.update) {
-                    messagesExceptUpdates.add(message);
-                }
-            }
 
-            adapter.addItems(messagesExceptUpdates);
-        }
-    };
     private ConnectionCallback chatInitializedCallback = new ConnectionCallback() {
         @Override
         public void onConnectionCallback(Exception ex) {
             if (ex != null) {
                 showError("Unable to connect to Ably service", ex);
+                runOnUiThread(() -> binding.errorView.setVisibility(View.VISIBLE));
                 return;
             }
 
             addCurrentMembers();
             runOnUiThread(() -> {
+                binding.progressView.setVisibility(View.GONE);
                 binding.textET.removeTextChangedListener(isUserTypingTextWatcher);
                 binding.textET.addTextChangedListener(isUserTypingTextWatcher);
             });
         }
     };
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,17 +102,24 @@ public class ChatActivity extends AppCompatActivity implements Presence.Presence
 
         clientId = getIntent().getStringExtra(EXTRA_CLIENT_ID);
 
+        initChatAdapter();
+        initViewListeners();
+        initAbly();
+    }
+
+    private void initViewListeners() {
         binding.mentionBtn.setOnClickListener(v -> onMentionClick());
         binding.textET.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEND || event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
                 try {
-                    CharSequence messageText = binding.textET.getText();
+                    CharSequence messageText = binding.textET.getText().toString();
 
                     if (TextUtils.isEmpty(messageText)) {
                         Log.d(TAG, "message is empty and cant be sent!");
                         return false;
                     }
 
+                    Log.d(TAG, "Sending message: " + messageText);
                     Connection.getInstance().sendMessage(messageText.toString(), ex -> {
                         if (ex != null) {
                             showError("Unable to send message", ex);
@@ -146,30 +128,37 @@ public class ChatActivity extends AppCompatActivity implements Presence.Presence
 
                         runOnUiThread(() -> binding.textET.setText(""));
                     });
+                    return true;
                 } catch (AblyException e) {
                     e.printStackTrace();
+                    return true;
                 }
             }
             return false;
         });
+    }
 
+    private void initChatAdapter() {
         adapter = new ChatScreenAdapter(this.clientId);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true);
         binding.chatList.setLayoutManager(linearLayoutManager);
         binding.chatList.setAdapter(adapter);
+    }
 
+    private void initAbly() {
         try {
+            binding.progressView.setVisibility(View.VISIBLE);
             Connection.getInstance().init(this, this, ex -> {
+                chatInitializedCallback.onConnectionCallback(ex);
+
                 if (ex != null) {
                     showError("Unable to connect", ex);
                     return;
                 }
 
-                chatInitializedCallback.onConnectionCallback(ex);
-
                 try {
-                    Connection.getInstance().getMessagesHistory(getMessageHistoryCallback);
-                    Connection.getInstance().getPresenceHistory(getPresenceHistoryCallback);
+                    Connection.getInstance().getMessagesHistory(this);
+                    Connection.getInstance().getPresenceHistory(this);
                 } catch (AblyException e) {
                     chatInitializedCallback.onConnectionCallback(e);
                     e.printStackTrace();
@@ -177,6 +166,7 @@ public class ChatActivity extends AppCompatActivity implements Presence.Presence
             });
         } catch (AblyException e) {
             e.printStackTrace();
+            chatInitializedCallback.onConnectionCallback(e);
         }
     }
 
@@ -239,16 +229,19 @@ public class ChatActivity extends AppCompatActivity implements Presence.Presence
     public void onPresenceMessage(PresenceMessage message) {
         switch (message.action) {
             case enter:
+                Log.d(TAG, "onPresenceMessage: " + "enter");
                 adapter.addItem(message);
                 presentUsers.add(message.clientId);
                 updatePresentUsersBadge();
                 break;
             case leave:
+                Log.d(TAG, "onPresenceMessage: " + "leave");
                 adapter.addItem(message);
                 presentUsers.remove(message.clientId);
                 updatePresentUsersBadge();
                 break;
             case update:
+                Log.d(TAG, "onPresenceMessage: " + "update");
                 if (!message.clientId.equals(Connection.getInstance().userName)) {
                     runOnUiThread(() -> {
                         boolean isUserTyping = ((JsonObject) message.data).get("isTyping").getAsBoolean();
@@ -262,23 +255,23 @@ public class ChatActivity extends AppCompatActivity implements Presence.Presence
                             StringBuilder messageToShow = new StringBuilder();
                             switch (usersCurrentlyTyping.size()) {
                                 case 1:
-                                    messageToShow.append(usersCurrentlyTyping.get(0) + " is typing");
+                                    messageToShow.append(usersCurrentlyTyping.get(0)).append(" is typing");
                                     break;
                                 case 2:
-                                    messageToShow.append(usersCurrentlyTyping.get(0) + " and ");
-                                    messageToShow.append(usersCurrentlyTyping.get(1) + " are typing");
+                                    messageToShow.append(usersCurrentlyTyping.get(0)).append(" and ");
+                                    messageToShow.append(usersCurrentlyTyping.get(1)).append(" are typing");
                                     break;
                                 default:
                                     if (usersCurrentlyTyping.size() > 4) {
-                                        messageToShow.append(usersCurrentlyTyping.get(0) + ", ");
-                                        messageToShow.append(usersCurrentlyTyping.get(1) + ", ");
-                                        messageToShow.append(usersCurrentlyTyping.get(2) + " and other are typing");
+                                        messageToShow.append(usersCurrentlyTyping.get(0)).append(", ");
+                                        messageToShow.append(usersCurrentlyTyping.get(1)).append(", ");
+                                        messageToShow.append(usersCurrentlyTyping.get(2)).append(" and other are typing");
                                     } else {
                                         int i;
                                         for (i = 0; i < usersCurrentlyTyping.size() - 1; ++i) {
-                                            messageToShow.append(usersCurrentlyTyping.get(i) + ", ");
+                                            messageToShow.append(usersCurrentlyTyping.get(i)).append(", ");
                                         }
-                                        messageToShow.append(" and " + usersCurrentlyTyping.get(i) + " are typing");
+                                        messageToShow.append(" and ").append(usersCurrentlyTyping.get(i)).append(" are typing");
                                     }
                             }
 
@@ -295,6 +288,35 @@ public class ChatActivity extends AppCompatActivity implements Presence.Presence
 
     @Override
     public void onMessage(Message message) {
-        adapter.addItem(message);
+        Log.d(TAG, "onMessage: " + message.toString());
+        runOnUiThread(() -> adapter.addItem(message));
+    }
+
+    public void getThreadName() {
+        Log.d(TAG, "Thread: " + Thread.currentThread().getName());
+    }
+
+    @Override
+    public void onMessageHistoryRetrieved(Iterable<Message> messages, Exception ex) {
+        Log.d(TAG, "onMessageHistoryRetrieved: " + messages.toString());
+        if (ex != null) {
+            showError("Unable to retrieve message history", ex);
+            return;
+        }
+        adapter.addItems(messages);
+    }
+
+    @Override
+    public void onPresenceHistoryRetrieved(Iterable<PresenceMessage> presenceMessages) {
+        Log.d(TAG, "onPresenceHistoryRetrieved: " + presenceMessages.toString());
+
+        ArrayList<PresenceMessage> messagesExceptUpdates = new ArrayList<PresenceMessage>();
+        for (PresenceMessage message : presenceMessages) {
+            if (message.action != PresenceMessage.Action.update) {
+                messagesExceptUpdates.add(message);
+            }
+        }
+
+        adapter.addItems(messagesExceptUpdates);
     }
 }

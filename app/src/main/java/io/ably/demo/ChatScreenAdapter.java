@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import io.ably.demo.databinding.ChatMessageIncomingBinding;
 import io.ably.demo.databinding.ChatMessageOutgoingBinding;
@@ -39,19 +40,22 @@ public class ChatScreenAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             Log.d(TAG, "Duplicated message will not be added");
             return;
         }
+
         this.items.add(0, message);
-        //Collections.sort(items, new ItemsTimeComparator());
-        //notifyItemInserted(0);
+        Collections.sort(items, new ItemsTimeComparator());
+        notifyItemInserted(0);
         //notifyItemInserted(items.size());
-        notifyDataSetChanged();
+        //notifyDataSetChanged();
     }
 
     public void addItems(Iterable<? extends BaseMessage> newItems) {
+        int start = items.size();
         for (BaseMessage item : newItems) {
             items.add(item);
         }
-        //Collections.sort(items, new ItemsTimeComparator());
-        notifyDataSetChanged();
+        Collections.sort(items, new ItemsTimeComparator());
+        //notifyDataSetChanged();
+        notifyItemRangeInserted(start, items.size());
     }
 
     @NonNull

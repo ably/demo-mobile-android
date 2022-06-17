@@ -67,6 +67,7 @@ public class Connection {
         ClientOptions clientOptions = new ClientOptions(key);
         clientOptions.logLevel = io.ably.lib.util.Log.VERBOSE;
         clientOptions.clientId = userName;
+        //clientOptions.echoMessages = false;
         ablyRealtime = new AblyRealtime(clientOptions);
 
         startConnection(ablyRealtime, callback);
